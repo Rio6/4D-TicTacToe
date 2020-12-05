@@ -1,5 +1,13 @@
-export default {
+export type ModelData = {
+    mode: string,
+    color: [number, number, number, number],
+    elems: number[],
+    verts: number[]
+};
+
+export const model_data = {
     x: {
+        mode: "LINES",
         color: [1, 0, 0, 1],
         elems: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         verts: [
@@ -22,6 +30,7 @@ export default {
         ]
     },
     o: {
+        mode: "LINES",
         color: [0, 0, 1, 1],
         elems: [
             0, 1, 1, 2, 2, 3, 3, 0,
@@ -55,6 +64,7 @@ export default {
         ]
     },
     grid: {
+        mode: "LINES",
         color: [1, 1, 1, 1],
         elems: Array(64).fill(0).map((_, i) => i),
         verts: [
@@ -126,9 +136,16 @@ export default {
             -1/3,  -1/3, -1/3,  1,
             -1/3,  -1/3, -1/3, -1,
         ]
-    }
+    },
+    select: {
+        mode: "POINTS",
+        color: [0, 1, 0, 1],
+        elems: [0],
+        verts: [0, 0, 0, 0]
+    },
 } as {
-    x: { color: [number, number, number, number], elems: number[], verts: number[] },
-    o: { color: [number, number, number, number], elems: number[], verts: number[] },
-    grid: { color: [number, number, number, number], elems: number[], verts: number[] },
+    x: ModelData,
+    o: ModelData,
+    grid: ModelData,
+    select: ModelData,
 };

@@ -12,6 +12,23 @@ export type Mat4 = [
     number, number, number, number,
 ];
 
+export function div(a: number, b: number): number {
+    return (a - a % b) / b;
+}
+
+export function mod(a: number, b: number): number {
+    return (a % b + b) % b;
+}
+
+export function grid_to_world([x, y, z, w]: Vec4): Vec4 {
+    return [
+        (x - 1) * 2/3,
+        (y - 1) * 2/3,
+        (z - 1) * 2/3,
+        (w - 1) * 2/3,
+    ];
+}
+
 export function zero_mat(): Mat4 {
     return [
         0, 0, 0, 0,

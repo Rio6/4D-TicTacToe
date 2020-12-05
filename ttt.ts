@@ -1,4 +1,4 @@
-import model_data from './model_data';
+import { model_data, ModelData } from './model_data';
 import * as m from './math';
 
 const config = {
@@ -7,6 +7,7 @@ const config = {
     zoom_speed: 0.25,
     camera_dist: 3,
     project_dist: 3,
+    select_size: 10,
 };
 
 const vertex_shader_src = `
@@ -16,16 +17,18 @@ const vertex_shader_src = `
     uniform mat4 transform;
     uniform mat4 rotation;
     uniform mat4 projection;
+
     uniform float project_dist;
+    uniform float select_size;
 
     attribute vec4 position;
-    attribute vec4 next_position;
 
     void main() {
         vec4 projected = projection * rotation * (position + model_pos);
         projected *= project_dist / (projected.w + project_dist);
         projected.w = 1.0;
         gl_Position = transform * projected;
+        gl_PointSize = select_size;
     }
 `;
 
@@ -40,16 +43,43 @@ const frag_shader_src = `
 `;
 
 enum Piece {
-    EMPTY, X, O
+    X, O
 }
 
 enum Dimension {
     TWO, THREE, FOUR
 }
 
-type Board = {
-    dimension: number,
-    pieces: Piece[] | Piece[][] | Piece[][][] | Piece[][][][];
+enum Direction {
+    RIGHT, LEFT, UP, DOWN, FRONT, BACK, ANA, KATA
+}
+
+class Board {
+    public dimension: number;
+    public pieces: Piece[] = [];
+    public cur_piece: Piece = Piece.X;
+    public select: number = 0;
+
+    constructor(dimension: Dimension) {
+        this.dimension = dimension;
+    }
+
+    swap_piece() {
+        if(this.cur_piece == Piece.X)
+            this.cur_piece = Piece.O;
+        else
+            this.cur_piece = Piece.X;
+    }
+
+    put_piece(): boolean {
+        if(this.pieces[this.select] == null) {
+            this.pieces[this.select] = this.cur_piece;
+            this.swap_piece();
+            return true;
+        }
+
+        return false;
+    }
 }
 
 class Model {
@@ -57,12 +87,14 @@ class Model {
     private vao: WebGLVertexArrayObject;
     private ebo: WebGLBuffer;
     private color: m.Vec4;
+    private mode: GLenum;
     private elem_count: number;
 
-    constructor({color, elems, verts}: {color: m.Vec4, elems: number[], verts: number[]}) {
+    constructor({mode, color, elems, verts}: ModelData) {
         const gl = ctx.gl;
 
         this.color = color;
+        this.mode = gl[mode];
         this.elem_count = elems.length;
 
         this.vbo = gl.createBuffer();
@@ -85,7 +117,7 @@ class Model {
         gl.uniform4fv(ctx.uniform.model_pos, position);
         gl.uniform4fv(ctx.uniform.color, this.color);
         gl.bindVertexArray(this.vao);
-        gl.drawElements(gl.LINES, this.elem_count, gl.UNSIGNED_INT, 0);
+        gl.drawElements(this.mode, this.elem_count, gl.UNSIGNED_INT, 0);
     }
 }
 
@@ -94,7 +126,8 @@ let models: {
         [Piece.X]: Model
         [Piece.O]: Model
     }
-    grid: Model
+    grid: Model,
+    select: Model
 };
 
 let ctx: {
@@ -107,6 +140,7 @@ let ctx: {
         projection:   WebGLUniformLocation,
         color:        WebGLUniformLocation,
         project_dist: WebGLUniformLocation,
+        select_size:  WebGLUniformLocation,
     }
 };
 
@@ -116,9 +150,45 @@ const camera = {
     dimension: Dimension.TWO,
 };
 
-const board = {
-    dimension: Dimension.FOUR,
-    pieces: []
+const board = new Board(Dimension.FOUR);
+
+function index_to_pos(i: number): m.Vec4 {
+    return [
+        i % 3,
+        m.div(i % 9, 3),
+        m.div(i % 27, 9),
+        m.div(i, 27),
+    ];
+}
+
+export function next_index(index: number, dir: Direction): number {
+    let step = 1, exp;
+
+    switch(dir) {
+        case Direction.LEFT: case Direction.DOWN: case Direction.BACK: case Direction.KATA:
+            step = -1;
+    }
+
+    switch(dir) {
+        case Direction.RIGHT: case Direction.LEFT:
+            exp = 1;
+            break;
+
+        case Direction.UP: case Direction.DOWN:
+            exp = 2;
+            break;
+
+        case Direction.FRONT: case Direction.BACK:
+            exp = 3;
+            break;
+
+        case Direction.ANA: case Direction.KATA:
+            exp = 4;
+            break;
+    }
+
+    const pow = 3**exp;
+    return m.div(index, pow) * pow + m.mod(index + step * pow/3, pow);
 }
 
 function init() {
@@ -127,7 +197,7 @@ function init() {
 
     can.addEventListener('mousemove', mousemove);
     can.addEventListener('wheel', wheel);
-    can.addEventListener('keypress', keypress);
+    can.addEventListener('keydown', keydown);
     can.addEventListener('contextmenu', e => {
         e.preventDefault();
         return false
@@ -166,6 +236,7 @@ function init() {
             projection:   gl.getUniformLocation(program, 'projection'),
             color:        gl.getUniformLocation(program, 'color'),
             project_dist: gl.getUniformLocation(program, 'project_dist'),
+            select_size:  gl.getUniformLocation(program, 'select_size'),
         }
     };
 
@@ -178,20 +249,9 @@ function init() {
             [Piece.X]: new Model(model_data.x),
             [Piece.O]: new Model(model_data.o),
         },
-        grid: new Model(model_data.grid)
+        grid: new Model(model_data.grid),
+        select: new Model(model_data.select),
     };
-
-    board.pieces = [
-        Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X,
-        Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O,
-        Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X,
-        Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O,
-        Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X,
-        Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O,
-        Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X,
-        Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O,
-        Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X,
-    ];
 
     draw(board);
 }
@@ -201,13 +261,14 @@ function draw(board: Board) {
 
     const dimension = Math.min(camera.dimension, board.dimension);
 
-    const unfold = 3**(board.dimension - camera.dimension);
-    const cols = unfold >= 3 ? 3 : 1;
-    const rows = unfold >= 9 ? 3 : 1;
+    const unfold = board.dimension - camera.dimension;
+    const cols = unfold >= 1 ? 3 : 1;
+    const rows = unfold >= 2 ? 3 : 1;
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.uniform1f(ctx.uniform.project_dist, config.project_dist);
+    gl.uniform1f(ctx.uniform.select_size, config.select_size);
 
     let transform = m.identity();
 
@@ -236,47 +297,33 @@ function draw(board: Board) {
     for(let col = 0; col < cols; col++) {
         for(let row = 0; row < rows; row++) {
 
+            const should_draw = function([x, y, z, w]: m.Vec4): boolean {
+                switch(camera.dimension) {
+                    case Dimension.TWO:
+                        return row == z && col == w;
+                    case Dimension.THREE:
+                        return col == w;
+                    case Dimension.FOUR:
+                    default:
+                        return true;
+                }
+            };
+
             gl.uniformMatrix4fv(ctx.uniform.transform, false,
                 m.mul(m.translate(cols == 1 ? 0 : (col-1) * 2/3, rows == 1 ? 0 : (row-1) * 2/3, 0), transform));
 
             models.grid.draw([0, 0, 0, 0]);
 
+            const select_pos = index_to_pos(board.select);
+            if(should_draw(select_pos))
+                models.select.draw(m.grid_to_world(select_pos));
+
             board.pieces.forEach((piece, i) => {
-                const div = (a, b) => (a-a%b) / b;
 
-                if(piece != Piece.EMPTY) {
-
-                    const x = i % 3;
-                    const y = div(i % 9, 3);
-                    const z = div(i % 27, 9);
-                    const w = div(i, 27);
-
-                    let clips: [number, number];
-                    switch(camera.dimension) {
-                        case Dimension.TWO:
-                            clips = [z, w];
-                            break;
-                        case Dimension.THREE:
-                            clips = [w, row];
-                            break;
-                        case Dimension.FOUR:
-                        default:
-                            clips = [col, row];
-                            break;
-                    }
-
-                    if(clips[0] == col && clips[1] == row) {
-
-                        const pos = [
-                            (x - 1) * 2/3,
-                            (y - 1) * 2/3,
-                            (z - 1) * 2/3,
-                            (w - 1) * 2/3,
-                        ] as m.Vec4;
-
-                        models.pieces[piece].draw(pos);
-
-                    }
+                if(piece != null) {
+                    const pos = index_to_pos(i);
+                    if(should_draw(pos))
+                        models.pieces[piece].draw(m.grid_to_world(pos));
                 }
             });
         }
@@ -316,12 +363,45 @@ function wheel(e: WheelEvent) {
     draw(board);
 }
 
-function keypress(e: KeyboardEvent) {
-    if(e.key == "[" && camera.dimension > Dimension.TWO) {
-        camera.dimension -= 1;
-    } else if(e.key == "]" && camera.dimension < board.dimension) {
-        camera.dimension += 1;
+function keydown(e: KeyboardEvent) {
+    switch(e.key) {
+        case '[':
+            if(camera.dimension > Dimension.TWO)
+                camera.dimension -= 1;
+            break;
+        case ']':
+            if(e.key == "]" && camera.dimension < board.dimension)
+                camera.dimension += 1;
+            break;
+        case ' ':
+            board.put_piece();
+            break;
+        case 'ArrowLeft':
+            board.select = next_index(board.select, Direction.LEFT);
+            break;
+        case 'ArrowRight':
+            board.select = next_index(board.select, Direction.RIGHT);
+            break;
+        case 'ArrowUp':
+            board.select = next_index(board.select, Direction.UP);
+            break;
+        case 'ArrowDown':
+            board.select = next_index(board.select, Direction.DOWN);
+            break;
+        case 'w':
+            board.select = next_index(board.select, Direction.FRONT);
+            break;
+        case 's':
+            board.select = next_index(board.select, Direction.BACK);
+            break;
+        case 'd':
+            board.select = next_index(board.select, Direction.ANA);
+            break;
+        case 'a':
+            board.select = next_index(board.select, Direction.KATA);
+            break;
     }
+
     draw(board);
 }
 
