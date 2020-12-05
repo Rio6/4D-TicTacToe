@@ -90,13 +90,11 @@ class Model {
 }
 
 let models: {
-    [key in Dimension]: {
-        pieces: {
-            [Piece.X]: Model
-            [Piece.O]: Model
-        }
-        grid: Model
+    pieces: {
+        [Piece.X]: Model
+        [Piece.O]: Model
     }
+    grid: Model
 };
 
 let ctx: {
@@ -175,27 +173,11 @@ function init() {
     gl.enable(gl.DEPTH_TEST);
 
     models = {
-        [Dimension.TWO]: {
-            pieces: {
-                [Piece.X]: new Model(model_data.x[0]),
-                [Piece.O]: new Model(model_data.o[0]),
-            },
-            grid: new Model(model_data.grid[0])
+        pieces: {
+            [Piece.X]: new Model(model_data.x),
+            [Piece.O]: new Model(model_data.o),
         },
-        [Dimension.THREE]: {
-            pieces: {
-                [Piece.X]: new Model(model_data.x[1]),
-                [Piece.O]: new Model(model_data.o[1]),
-            },
-            grid: new Model(model_data.grid[1])
-        },
-        [Dimension.FOUR]: {
-            pieces: {
-                [Piece.X]: new Model(model_data.x[2]),
-                [Piece.O]: new Model(model_data.o[2]),
-            },
-            grid: new Model(model_data.grid[2])
-        }
+        grid: new Model(model_data.grid)
     };
 
     board.pieces = [
@@ -217,7 +199,6 @@ function draw(board: Board) {
     const gl = ctx.gl;
 
     const dimension = Math.min(camera.dimension, board.dimension);
-    const dim_models = models[dimension];
 
     const unfold = 3**(board.dimension - camera.dimension);
     const cols = unfold >= 3 ? 3 : 1;
@@ -253,10 +234,11 @@ function draw(board: Board) {
 
     for(let col = 0; col < cols; col++) {
         for(let row = 0; row < rows; row++) {
+
             gl.uniformMatrix4fv(ctx.uniform.transform, false,
                 m.mul(m.translate(cols == 1 ? 0 : (col-1) * 2/3, rows == 1 ? 0 : (row-1) * 2/3, 0), transform));
 
-            dim_models.grid.draw([0, 0, 0, 0]);
+            models.grid.draw([0, 0, 0, 0]);
 
             board.pieces.forEach((piece, i) => {
                 const div = (a, b) => (a-a%b) / b;
@@ -291,7 +273,7 @@ function draw(board: Board) {
                             (w - 1) * 2/3,
                         ] as m.Vec4;
 
-                        dim_models.pieces[piece].draw(pos);
+                        models.pieces[piece].draw(pos);
 
                     }
                 }
