@@ -1,5 +1,5 @@
-/// <reference path="./model_data.ts" />
-/// <reference path="./math.ts" />
+import model_data from './model_data';
+import * as m from './math';
 
 const config = {
     fov: 60,
@@ -7,8 +7,6 @@ const config = {
     zoom_speed: 0.25,
     project_dist: 3,
 };
-
-window.onload = init;
 
 const vertex_shader_src = `
     precision mediump float;
@@ -300,3 +298,9 @@ function wheel(e: WheelEvent) {
         camera.distance = 0;
     draw(board);
 }
+
+window.onload = init;
+
+export {
+    config, camera, board
+};

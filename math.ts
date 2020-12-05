@@ -3,16 +3,16 @@
  * https://github.com/treeform/vmath
  */
 
-type Vec3 = [number, number, number];
-type Vec4 = [number, number, number, number];
-type Mat4 = [
+export type Vec3 = [number, number, number];
+export type Vec4 = [number, number, number, number];
+export type Mat4 = [
     number, number, number, number,
     number, number, number, number,
     number, number, number, number,
     number, number, number, number,
 ];
 
-function zero_mat(): Mat4 {
+export function zero_mat(): Mat4 {
     return [
         0, 0, 0, 0,
         0, 0, 0, 0,
@@ -21,7 +21,7 @@ function zero_mat(): Mat4 {
     ];
 }
 
-function identity(): Mat4 {
+export function identity(): Mat4 {
     return [
         1, 0, 0, 0,
         0, 1, 0, 0,
@@ -30,7 +30,7 @@ function identity(): Mat4 {
     ];
 }
 
-function mul(...mats: Mat4[]): Mat4 {
+export function mul(...mats: Mat4[]): Mat4 {
     const do_mul = (a: Mat4, b: Mat4): Mat4 => {
         const [
             a00, a01, a02, a03,
@@ -69,7 +69,7 @@ function mul(...mats: Mat4[]): Mat4 {
     return mats.reduceRight((a, b) => do_mul(b, a));
 }
 
-function frustum(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4 {
+export function frustum(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4 {
     const rl = (right - left);
     const tb = (top - bottom);
     const fn = (far - near);
@@ -82,13 +82,13 @@ function frustum(left: number, right: number, bottom: number, top: number, near:
     ]
 }
 
-function perspective(fovy: number, aspect: number, near: number, far: number): Mat4 {
+export function perspective(fovy: number, aspect: number, near: number, far: number): Mat4 {
     const top = near * Math.tan(fovy*Math.PI / 360.0);
     const right = top * aspect;
     return frustum(-right, right, -top, top, near, far);
 }
 
-function translate(x: number, y: number, z: number): Mat4 {
+export function translate(x: number, y: number, z: number): Mat4 {
     return [
         1, 0, 0, 0,
         0, 1, 0, 0,
@@ -97,7 +97,7 @@ function translate(x: number, y: number, z: number): Mat4 {
     ];
 }
 
-function scale(f: number): Mat4 {
+export function scale(f: number): Mat4 {
     return [
         f, 0, 0, 0,
         0, f, 0, 0,
@@ -106,7 +106,7 @@ function scale(f: number): Mat4 {
     ];
 }
 
-function rotate3D(th: number, axis: Vec3): Mat4 {
+export function rotate3D(th: number, axis: Vec3): Mat4 {
     const s = Math.sin(th/2);
     const c = Math.cos(th/2);
 
@@ -143,7 +143,7 @@ function rotate3D(th: number, axis: Vec3): Mat4 {
     ];
 }
 
-function rotate4D(th: number): Mat4 {
+export function rotate4D(th: number): Mat4 {
     const s = Math.sin(th);
     const c = Math.cos(th);
 
@@ -155,7 +155,7 @@ function rotate4D(th: number): Mat4 {
     ]
 }
 
-function project2D(): Mat4 {
+export function project2D(): Mat4 {
     return [
         1, 0, 0, 0,
         0, 1, 0, 0,
@@ -164,7 +164,7 @@ function project2D(): Mat4 {
     ];
 }
 
-function project3D(w): Mat4 {
+export function project3D(): Mat4 {
     return [
         1, 0, 0, 0,
         0, 1, 0, 0,

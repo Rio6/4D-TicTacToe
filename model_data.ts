@@ -1,8 +1,4 @@
-const model_data : {
-    x: { color: [number, number, number, number], elems: number[], verts: number[] }[],
-    o: { color: [number, number, number, number], elems: number[], verts: number[] }[],
-    grid: { color: [number, number, number, number], elems: number[], verts: number[] }[],
-} = {
+export default {
     x: [
         {
             color: [1, 0, 0, 1],
@@ -236,4 +232,8 @@ const model_data : {
             ]
         }
     ]
+} as {
+    x: { color: [number, number, number, number], elems: number[], verts: number[] }[],
+    o: { color: [number, number, number, number], elems: number[], verts: number[] }[],
+    grid: { color: [number, number, number, number], elems: number[], verts: number[] }[],
 };

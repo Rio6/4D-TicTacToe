@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "amd",
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "outFile": "ttt.js",
+    "lib": ["es6", "dom"]
+  },
+  "files": [
+    "ttt.ts",
+    "math.ts",
+    "model_data.ts"
+  ]
+}
