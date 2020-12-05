@@ -5,6 +5,7 @@ const config = {
     fov: 60,
     rot_speed: 0.01,
     zoom_speed: 0.25,
+    camera_dist: 2,
     project_dist: 3,
 };
 
@@ -55,10 +56,10 @@ class Model {
     private vbo: WebGLBuffer;
     private vao: WebGLVertexArrayObject;
     private ebo: WebGLBuffer;
-    private color: Vec4;
+    private color: m.Vec4;
     private elem_count: number;
 
-    constructor({color, elems, verts}: {color: Vec4, elems: number[], verts: number[]}) {
+    constructor({color, elems, verts}: {color: m.Vec4, elems: number[], verts: number[]}) {
         const gl = ctx.gl;
 
         this.color = color;
@@ -78,7 +79,7 @@ class Model {
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int32Array(elems), gl.STATIC_DRAW);
     }
 
-    draw(position: Vec4) {
+    draw(position: m.Vec4) {
         const gl = ctx.gl;
 
         gl.uniform4fv(ctx.uniform.model_pos, position);
@@ -113,8 +114,8 @@ let ctx: {
 
 const camera = {
     rotation: [ 0, 0, 0 ],
-    distance: 2,
-    dimension: Dimension.FOUR
+    distance: config.camera_dist,
+    dimension: Dimension.TWO,
 };
 
 const board = {
@@ -218,52 +219,85 @@ function draw(board: Board) {
     const dimension = Math.min(camera.dimension, board.dimension);
     const dim_models = models[dimension];
 
+    const unfold = 3**(board.dimension - camera.dimension);
+    const cols = unfold >= 3 ? 3 : 1;
+    const rows = unfold >= 9 ? 3 : 1;
+
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.uniform1f(ctx.uniform.project_dist, config.project_dist);
 
+    let transform = m.identity();
+
     switch(dimension) {
         case Dimension.TWO:
-            gl.uniformMatrix4fv(ctx.uniform.transform, false, identity());
-            gl.uniformMatrix4fv(ctx.uniform.projection, false, project2D());
-            gl.uniformMatrix4fv(ctx.uniform.rotation, false, identity());
+            gl.uniformMatrix4fv(ctx.uniform.transform, false, m.identity());
+            gl.uniformMatrix4fv(ctx.uniform.projection, false, m.project2D());
+            gl.uniformMatrix4fv(ctx.uniform.rotation, false, m.identity());
             break;
         case Dimension.THREE:
-            gl.uniformMatrix4fv(ctx.uniform.transform, false, mul(perspective(config.fov, 1, 0.1, 5), translate(0, 0, -camera.distance)));
-            gl.uniformMatrix4fv(ctx.uniform.projection, false, project3D(1));
-            gl.uniformMatrix4fv(ctx.uniform.rotation, false, mul(rotate3D(camera.rotation[1], [1, 0, 0]), rotate3D(camera.rotation[0], [0, 1, 0])));
+            transform = m.mul(m.perspective(config.fov, 1, 0.1, 5), m.translate(0, 0, -camera.distance), transform);
+            gl.uniformMatrix4fv(ctx.uniform.projection, false, m.project3D());
+            gl.uniformMatrix4fv(ctx.uniform.rotation, false,
+                m.mul(m.rotate3D(camera.rotation[1], [1, 0, 0]), m.rotate3D(camera.rotation[0], [0, 1, 0])));
             break;
         case Dimension.FOUR:
-            gl.uniformMatrix4fv(ctx.uniform.transform, false, mul(perspective(config.fov, 1, 0.1, 100), translate(0, 0, -camera.distance)));
-            gl.uniformMatrix4fv(ctx.uniform.projection, false, identity());
-            gl.uniformMatrix4fv(ctx.uniform.rotation, false, mul(rotate4D(camera.rotation[2]), rotate3D(camera.rotation[1], [1, 0, 0]), rotate3D(camera.rotation[0], [0, 1, 0])));
+            transform = m.mul(m.perspective(config.fov, 1, 0.1, 5), m.translate(0, 0, -camera.distance), transform);
+            gl.uniformMatrix4fv(ctx.uniform.projection, false, m.identity());
+            gl.uniformMatrix4fv(ctx.uniform.rotation, false,
+                m.mul(m.rotate4D(camera.rotation[2]), m.rotate3D(camera.rotation[1], [1, 0, 0]), m.rotate3D(camera.rotation[0], [0, 1, 0])));
             break;
     }
 
-    dim_models.grid.draw([0, 0, 0, 0]);
+    transform = m.mul(m.scale(1/cols * 0.9), transform);
 
-    board.pieces.forEach((piece, i) => {
-        const div = (a, b) => (a-a%b) / b;
+    for(let col = 0; col < cols; col++) {
+        for(let row = 0; row < rows; row++) {
+            gl.uniformMatrix4fv(ctx.uniform.transform, false,
+                m.mul(m.translate(cols == 1 ? 0 : (col-1) * 2/3, rows == 1 ? 0 : (row-1) * 2/3, 0), transform));
 
-        if(piece != Piece.EMPTY) {
+            dim_models.grid.draw([0, 0, 0, 0]);
 
-            const x = i % 3;
-            const y = div(i % 9, 3);
-            const z = div(i % 27, 9);
-            const w = div(i, 27);
+            board.pieces.forEach((piece, i) => {
+                const div = (a, b) => (a-a%b) / b;
 
-            gl.uniformMatrix4fv(ctx.uniform.projection, false, project3D(w));
+                if(piece != Piece.EMPTY) {
 
-            const pos = [
-                (x - 1) * 2/3,
-                (y - 1) * 2/3,
-                (z - 1) * 2/3,
-                (w - 1) * 2/3,
-            ] as Vec4;
+                    const x = i % 3;
+                    const y = div(i % 9, 3);
+                    const z = div(i % 27, 9);
+                    const w = div(i, 27);
 
-            dim_models.pieces[piece].draw(pos);
+                    let clips: [number, number];
+                    switch(camera.dimension) {
+                        case Dimension.TWO:
+                            clips = [z, w];
+                            break;
+                        case Dimension.THREE:
+                            clips = [w, row];
+                            break;
+                        case Dimension.FOUR:
+                        default:
+                            clips = [col, row];
+                            break;
+                    }
+
+                    if(clips[0] == col && clips[1] == row) {
+
+                        const pos = [
+                            (x - 1) * 2/3,
+                            (y - 1) * 2/3,
+                            (z - 1) * 2/3,
+                            (w - 1) * 2/3,
+                        ] as m.Vec4;
+
+                        dim_models.pieces[piece].draw(pos);
+
+                    }
+                }
+            });
         }
-    });
+    }
 }
 
 function mousemove(e: MouseEvent) {
