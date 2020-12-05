@@ -5,7 +5,7 @@ const config = {
     fov: 60,
     rot_speed: 0.01,
     zoom_speed: 0.25,
-    camera_dist: 2,
+    camera_dist: 3,
     project_dist: 3,
 };
 
@@ -127,6 +127,7 @@ function init() {
 
     can.addEventListener('mousemove', mousemove);
     can.addEventListener('wheel', wheel);
+    can.addEventListener('keypress', keypress);
     can.addEventListener('contextmenu', e => {
         e.preventDefault();
         return false
@@ -312,6 +313,15 @@ function wheel(e: WheelEvent) {
     camera.distance += config.zoom_speed * e.deltaY;
     if(camera.distance < 0)
         camera.distance = 0;
+    draw(board);
+}
+
+function keypress(e: KeyboardEvent) {
+    if(e.key == "[" && camera.dimension > Dimension.TWO) {
+        camera.dimension -= 1;
+    } else if(e.key == "]" && camera.dimension < board.dimension) {
+        camera.dimension += 1;
+    }
     draw(board);
 }
 
