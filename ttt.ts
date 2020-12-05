@@ -5,6 +5,7 @@ const config = {
     fov: 60,
     rot_speed: 0.01,
     zoom_speed: 0.25,
+    project_dist: 3,
 };
 
 window.onload = init;
@@ -16,12 +17,14 @@ const vertex_shader_src = `
     uniform mat4 transform;
     uniform mat4 rotation;
     uniform mat4 projection;
+    uniform float project_dist;
 
     attribute vec4 position;
     attribute vec4 next_position;
 
     void main() {
         vec4 projected = projection * rotation * (position + model_pos);
+        projected *= project_dist / (projected.w + project_dist);
         projected.w = 1.0;
         gl_Position = transform * projected;
     }
@@ -101,24 +104,23 @@ let ctx: {
     gl: WebGL2RenderingContext,
 
     uniform: {
-        model_pos:  WebGLUniformLocation,
-        transform: WebGLUniformLocation,
-        rotation:   WebGLUniformLocation,
-        projection: WebGLUniformLocation,
-        color:      WebGLUniformLocation,
+        model_pos:    WebGLUniformLocation,
+        transform:    WebGLUniformLocation,
+        rotation:     WebGLUniformLocation,
+        projection:   WebGLUniformLocation,
+        color:        WebGLUniformLocation,
+        project_dist: WebGLUniformLocation,
     }
 };
 
 const camera = {
-    rotation: [
-        0, 0, 0
-    ],
+    rotation: [ 0, 0, 0 ],
     distance: 2,
-    dimension: Dimension.THREE
+    dimension: Dimension.FOUR
 };
 
 const board = {
-    dimension: Dimension.THREE,
+    dimension: Dimension.FOUR,
     pieces: []
 }
 
@@ -132,6 +134,9 @@ function init() {
         e.preventDefault();
         return false
     });
+
+    can.addEventListener('mousedown', () => can.requestPointerLock());
+    can.addEventListener('mouseup', () => document.exitPointerLock());
 
     const vertex_shader = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(vertex_shader, vertex_shader_src);
@@ -157,11 +162,12 @@ function init() {
     ctx = {
         gl: gl,
         uniform: {
-            model_pos:  gl.getUniformLocation(program, 'model_pos'),
-            transform: gl.getUniformLocation(program, 'transform'),
-            rotation:   gl.getUniformLocation(program, 'rotation'),
-            projection: gl.getUniformLocation(program, 'projection'),
-            color:      gl.getUniformLocation(program, 'color')
+            model_pos:    gl.getUniformLocation(program, 'model_pos'),
+            transform:    gl.getUniformLocation(program, 'transform'),
+            rotation:     gl.getUniformLocation(program, 'rotation'),
+            projection:   gl.getUniformLocation(program, 'projection'),
+            color:        gl.getUniformLocation(program, 'color'),
+            project_dist: gl.getUniformLocation(program, 'project_dist'),
         }
     };
 
@@ -193,7 +199,17 @@ function init() {
         }
     };
 
-    board.pieces = [Piece.X, Piece.O, Piece.X, Piece.O];
+    board.pieces = [
+        Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X,
+        Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O,
+        Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X,
+        Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O,
+        Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X,
+        Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O,
+        Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X,
+        Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O,
+        Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X, Piece.O, Piece.X,
+    ];
 
     draw(board);
 }
@@ -206,16 +222,23 @@ function draw(board: Board) {
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    gl.uniform1f(ctx.uniform.project_dist, config.project_dist);
+
     switch(dimension) {
         case Dimension.TWO:
             gl.uniformMatrix4fv(ctx.uniform.transform, false, identity());
-            gl.uniformMatrix4fv(ctx.uniform.projection, false, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+            gl.uniformMatrix4fv(ctx.uniform.projection, false, project2D());
             gl.uniformMatrix4fv(ctx.uniform.rotation, false, identity());
             break;
         case Dimension.THREE:
+            gl.uniformMatrix4fv(ctx.uniform.transform, false, mul(perspective(config.fov, 1, 0.1, 5), translate(0, 0, -camera.distance)));
+            gl.uniformMatrix4fv(ctx.uniform.projection, false, project3D(1));
+            gl.uniformMatrix4fv(ctx.uniform.rotation, false, mul(rotate3D(camera.rotation[1], [1, 0, 0]), rotate3D(camera.rotation[0], [0, 1, 0])));
+            break;
+        case Dimension.FOUR:
             gl.uniformMatrix4fv(ctx.uniform.transform, false, mul(perspective(config.fov, 1, 0.1, 100), translate(0, 0, -camera.distance)));
             gl.uniformMatrix4fv(ctx.uniform.projection, false, identity());
-            gl.uniformMatrix4fv(ctx.uniform.rotation, false, mul(rotate(camera.rotation[1], [1, 0, 0]), rotate(camera.rotation[0], [0, 1, 0])));
+            gl.uniformMatrix4fv(ctx.uniform.rotation, false, mul(rotate4D(camera.rotation[2]), rotate3D(camera.rotation[1], [1, 0, 0]), rotate3D(camera.rotation[0], [0, 1, 0])));
             break;
     }
 
@@ -231,11 +254,13 @@ function draw(board: Board) {
             const z = div(i % 27, 9);
             const w = div(i, 27);
 
+            gl.uniformMatrix4fv(ctx.uniform.projection, false, project3D(w));
+
             const pos = [
                 (x - 1) * 2/3,
                 (y - 1) * 2/3,
                 (z - 1) * 2/3,
-                (w - 1) * 2/3
+                (w - 1) * 2/3,
             ] as Vec4;
 
             dim_models.pieces[piece].draw(pos);
@@ -244,17 +269,29 @@ function draw(board: Board) {
 }
 
 function mousemove(e: MouseEvent) {
-    if(e.buttons & 1) {
-        camera.rotation[0] += config.rot_speed * e.movementX;
-        camera.rotation[1] += config.rot_speed * e.movementY;
+    let to_draw = false;
 
+    if(e.buttons & 1) {
+        camera.rotation[0] += -config.rot_speed * e.movementX;
+        camera.rotation[1] += -config.rot_speed * e.movementY;
+
+        /*
         if(camera.rotation[1] > Math.PI/2)
             camera.rotation[1] = Math.PI/2;
         if(camera.rotation[1] < -Math.PI/2)
             camera.rotation[1] = -Math.PI/2;
+        */
 
-        draw(board);
+        to_draw = true;
     }
+
+    if(e.buttons & 2) {
+        camera.rotation[2] += config.rot_speed * e.movementX;
+        to_draw = true;
+    }
+
+    if(to_draw)
+        draw(board);
 }
 
 function wheel(e: WheelEvent) {

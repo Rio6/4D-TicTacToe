@@ -166,9 +166,9 @@ function project2D(): Mat4 {
 
 function project3D(w): Mat4 {
     return [
-        1/(1+w), 0, 0, 0,
-        0, 1/(1+w), 0, 0,
-        0, 0, 1/(1+w), 0,
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
         0, 0, 0, 0,
     ];
 }
