@@ -24,7 +24,7 @@ export function grid_to_world([x, y, z, w]: Vec4): Vec4 {
     return [
         (x - 1) * 2/3,
         (y - 1) * 2/3,
-        (z - 1) * 2/3,
+       -(z - 1) * 2/3,
         (w - 1) * 2/3,
     ];
 }

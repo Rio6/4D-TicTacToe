@@ -4,10 +4,11 @@
     "removeComments": true,
     "preserveConstEnums": true,
     "sourceMap": true,
-    "outFile": "ttt.js",
+    "outFile": "tictactoe.js",
     "lib": ["es6", "dom"]
   },
   "files": [
+    "main.ts",
     "ttt.ts",
     "math.ts",
     "model_data.ts"
