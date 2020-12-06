@@ -1,4 +1,4 @@
-import { Config, Piece, Dimension, Direction, Board } from './ttt';
+import { Config, Piece, Dimension, Board } from './ttt';
 import * as graphics from './graphics'
 
 declare var config: Config;
@@ -77,29 +77,29 @@ function keydown(e: KeyboardEvent) {
         case ' ':
             board.put_piece();
             break;
-        case 'ArrowLeft':
-            board.move(Direction.LEFT);
-            break;
         case 'ArrowRight':
-            board.move(Direction.RIGHT);
+            board.move([1, 0, 0, 0]);
+            break;
+        case 'ArrowLeft':
+            board.move([-1, 0, 0, 0]);
             break;
         case 'ArrowUp':
-            board.move(Direction.UP);
+            board.move([0, 1, 0, 0]);
             break;
         case 'ArrowDown':
-            board.move(Direction.DOWN);
+            board.move([0, -1, 0, 0]);
             break;
         case 'w':
-            board.move(Direction.FRONT);
+            board.move([0, 0, 1, 0]);
             break;
         case 's':
-            board.move(Direction.BACK);
+            board.move([0, 0, -1, 0]);
             break;
         case 'd':
-            board.move(Direction.ANA);
+            board.move([0, 0, 0, 1]);
             break;
         case 'a':
-            board.move(Direction.KATA);
+            board.move([0, 0, 0, -1]);
             break;
     }
 

@@ -1,5 +1,5 @@
 import { model_data, ModelData } from './model_data';
-import { Config, Piece, Dimension, Direction, Board } from './ttt';
+import { Config, Piece, Dimension, Board } from './ttt';
 import * as m from './math';
 
 declare const config: Config;
@@ -104,15 +104,6 @@ export let camera: {
     dimension: Dimension,
 };
 
-function index_to_pos(i: number): m.Vec4 {
-    return [
-        i % 3,
-        m.div(i % 9, 3),
-        m.div(i % 27, 9),
-        m.div(i, 27),
-    ];
-}
-
 export function init(can: HTMLCanvasElement) {
     const gl = can.getContext('webgl2');
 
@@ -193,20 +184,20 @@ export function draw(board: Board) {
             gl.uniformMatrix4fv(ctx.uniform.rotation, false, m.identity());
             break;
         case Dimension.THREE:
-            transform = m.mul(m.perspective(config.fov, 1, 0.1, 5), m.translate(0, 0, -camera.distance), transform);
+            transform = m.mulm4(m.perspective(config.fov, 1, 0.1, 5), m.translate(0, 0, -camera.distance), transform);
             gl.uniformMatrix4fv(ctx.uniform.projection, false, m.project3D());
             gl.uniformMatrix4fv(ctx.uniform.rotation, false,
-                m.mul(m.rotate3D(camera.rotation[1], [1, 0, 0]), m.rotate3D(camera.rotation[0], [0, 1, 0])));
+                m.mulm4(m.rotate3D(camera.rotation[1], [1, 0, 0]), m.rotate3D(camera.rotation[0], [0, 1, 0])));
             break;
         case Dimension.FOUR:
-            transform = m.mul(m.perspective(config.fov, 1, 0.1, 5), m.translate(0, 0, -camera.distance), transform);
+            transform = m.mulm4(m.perspective(config.fov, 1, 0.1, 5), m.translate(0, 0, -camera.distance), transform);
             gl.uniformMatrix4fv(ctx.uniform.projection, false, m.identity());
             gl.uniformMatrix4fv(ctx.uniform.rotation, false,
-                m.mul(m.rotate4D(camera.rotation[2]), m.rotate3D(camera.rotation[1], [1, 0, 0]), m.rotate3D(camera.rotation[0], [0, 1, 0])));
+                m.mulm4(m.rotate4D(camera.rotation[2]), m.rotate3D(camera.rotation[1], [1, 0, 0]), m.rotate3D(camera.rotation[0], [0, 1, 0])));
             break;
     }
 
-    transform = m.mul(m.scale(1/Math.max(rows, cols) * 0.9), transform);
+    transform = m.mulm4(m.scale(1/Math.max(rows, cols) * 0.9), transform);
 
     for(let col = 0; col < cols; col++) {
         for(let row = 0; row < rows; row++) {
@@ -214,7 +205,7 @@ export function draw(board: Board) {
             const should_draw = function([x, y, z, w]: m.Vec4): boolean {
                 switch(camera.dimension) {
                     case Dimension.TWO:
-                        return row == z && col == w;
+                        return unfold == 1 && col == z || unfold == 2 && row == z && col == w;
                     case Dimension.THREE:
                         return col == w;
                     case Dimension.FOUR:
@@ -224,18 +215,18 @@ export function draw(board: Board) {
             };
 
             gl.uniformMatrix4fv(ctx.uniform.transform, false,
-                m.mul(m.translate(cols == 1 ? 0 : (col-1) * 2/3, rows == 1 ? 0 : (row-1) * 2/3, 0), transform));
+                m.mulm4(m.translate(cols == 1 ? 0 : (col-1) * 2/3, rows == 1 ? 0 : (row-1) * 2/3, 0), transform));
 
             models.grid.draw([0, 0, 0, 0]);
 
-            const select_pos = index_to_pos(board.select);
+            const select_pos = m.index_to_pos(board.select);
             if(should_draw(select_pos))
                 models.select.draw(m.grid_to_world(select_pos));
 
             board.pieces.forEach((piece, i) => {
 
                 if(piece != null) {
-                    const pos = index_to_pos(i);
+                    const pos = m.index_to_pos(i);
                     if(should_draw(pos))
                         models.pieces[piece].draw(m.grid_to_world(pos));
                 }

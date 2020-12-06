@@ -17,10 +17,6 @@ export enum Dimension {
     TWO, THREE, FOUR
 }
 
-export enum Direction {
-    RIGHT, LEFT, UP, DOWN, FRONT, BACK, ANA, KATA
-}
-
 export class Board {
     public dimension: number;
     public pieces: Piece[] = [];
@@ -48,33 +44,9 @@ export class Board {
         return false;
     }
 
-    move(dir: Direction) {
-        let step = 1, exp;
-
-        switch(dir) {
-            case Direction.LEFT: case Direction.DOWN: case Direction.BACK: case Direction.KATA:
-                step = -1;
-        }
-
-        switch(dir) {
-            case Direction.RIGHT: case Direction.LEFT:
-                exp = 1;
-                break;
-
-            case Direction.UP: case Direction.DOWN:
-                exp = 2;
-                break;
-
-            case Direction.FRONT: case Direction.BACK:
-                exp = 3;
-                break;
-
-            case Direction.ANA: case Direction.KATA:
-                exp = 4;
-                break;
-        }
-
-        const pow = 3**exp;
-        this.select = m.div(this.select, pow) * pow + m.mod(this.select + step * pow/3, pow);
+    move(dir: m.Vec4) {
+        this.select = m.pos_to_index(
+            m.addv4(dir, m.index_to_pos(this.select))
+        );
     }
 }

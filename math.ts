@@ -29,6 +29,28 @@ export function grid_to_world([x, y, z, w]: Vec4): Vec4 {
     ];
 }
 
+export function index_to_pos(i: number): Vec4 {
+    return [
+        i % 3,
+        div(i % 9, 3),
+        div(i % 27, 9),
+        div(i, 27),
+    ];
+}
+
+export function pos_to_index(pos: Vec4): number {
+    return pos[0] % 3 + pos[1] % 3 * 3 + pos[2] % 3 * 9 + pos[3] % 3 * 27;
+}
+
+export function addv4(a: Vec4, b: Vec4): Vec4 {
+    return [
+        a[0] + b[0],
+        a[1] + b[1],
+        a[2] + b[2],
+        a[3] + b[3],
+    ];
+}
+
 export function zero_mat(): Mat4 {
     return [
         0, 0, 0, 0,
@@ -47,7 +69,7 @@ export function identity(): Mat4 {
     ];
 }
 
-export function mul(...mats: Mat4[]): Mat4 {
+export function mulm4(...mats: Mat4[]): Mat4 {
     const do_mul = (a: Mat4, b: Mat4): Mat4 => {
         const [
             a00, a01, a02, a03,
