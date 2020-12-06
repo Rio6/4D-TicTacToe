@@ -11,6 +11,7 @@
     "main.ts",
     "ttt.ts",
     "math.ts",
-    "model_data.ts"
+    "model_data.ts",
+    "ui.ts"
   ]
 }

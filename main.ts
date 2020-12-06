@@ -1,26 +1,30 @@
 import { Config, Piece, Dimension, Board } from './ttt';
-import * as graphics from './graphics'
+import * as ui from './ui';
+import * as graphics from './graphics';
 
 declare var config: Config;
 globalThis.config = {
-    fov: 60,
+    dimension: Dimension.FOUR,
     rot_speed: 0.01,
     zoom_speed: 0.25,
     camera_dist: 3,
     project_dist: 3,
     point_size: 10,
+    fov: 60,
 };
 
-const board = new Board(Dimension.FOUR);
+let board = new Board(config.dimension);
 
 function init() {
-    const can = document.getElementById("canvas") as HTMLCanvasElement;
+    const can = document.getElementById('canvas') as HTMLCanvasElement;
 
     can.addEventListener('keydown', keydown);
     can.addEventListener('contextmenu', e => {
         e.preventDefault();
         return false
     });
+
+    ui.init();
 
     graphics.init(can);
     graphics.draw(board);
@@ -35,11 +39,14 @@ function keydown(e: KeyboardEvent) {
                 camera.dimension -= 1;
             break;
         case ']':
-            if(e.key == "]" && camera.dimension < board.dimension)
+            if(camera.dimension < board.dimension)
                 camera.dimension += 1;
             break;
         case ' ':
             board.put_piece();
+            break;
+        case 'r':
+            board = new Board(config.dimension);
             break;
         case 'ArrowRight':
             board.move([1, 0, 0, 0]);

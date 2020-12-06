@@ -1,12 +1,13 @@
 import * as m from './math';
 
 export type Config = {
-    fov: number,
+    dimension: Dimension,
     rot_speed: number,
     zoom_speed: number,
     camera_dist: number,
     project_dist: number,
     point_size: number,
+    fov: number,
 };
 
 export type Winner = {
