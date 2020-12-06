@@ -234,7 +234,9 @@ export function draw(board?: Board) {
             const should_draw = function([x, y, z, w]: m.Vec4): boolean {
                 switch(camera.dimension) {
                     case Dimension.TWO:
-                        return unfold == 1 && col == z || unfold == 2 && row == z && col == w;
+                        return unfold == 0
+                            || unfold == 1 && col == z
+                            || unfold == 2 && row == z && col == w;
                     case Dimension.THREE:
                         return col == w;
                     case Dimension.FOUR:
