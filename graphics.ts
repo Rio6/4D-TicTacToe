@@ -103,6 +103,7 @@ export let camera: {
     rotation: [ number, number, number ],
     distance: number,
     dimension: Dimension,
+    aspect: number,
 };
 
 export function init(can: HTMLCanvasElement) {
@@ -129,6 +130,10 @@ export function init(can: HTMLCanvasElement) {
 
     gl.useProgram(program);
 
+    gl.lineWidth(20);
+    gl.clearColor(0, 0, 0, 1);
+    gl.enable(gl.DEPTH_TEST);
+
     ctx = {
         gl: gl,
         uniform: {
@@ -146,11 +151,8 @@ export function init(can: HTMLCanvasElement) {
         rotation: [0, 0, 0],
         dimension: Dimension.TWO,
         distance: config.camera_dist,
+        aspect: 1,
     };
-
-    gl.lineWidth(20);
-    gl.clearColor(0, 0, 0, 1);
-    gl.enable(gl.DEPTH_TEST);
 
     models = {
         pieces: {
@@ -161,10 +163,35 @@ export function init(can: HTMLCanvasElement) {
         select: new Model(model_data.select),
         winner: new Model(model_data.winner),
     };
+
+    can.addEventListener('mousemove', mousemove);
+    can.addEventListener('wheel', wheel);
+    can.addEventListener('mousedown', () => can.requestPointerLock());
+    can.addEventListener('mouseup', () => document.exitPointerLock());
+
+    const resize = function(_?: any) {
+        can.width = window.innerWidth;
+        can.height = window.innerHeight;
+        gl.viewport(0, 0, can.width, can.height);
+        camera.aspect = can.width / can.height;
+        draw();
+    };
+
+    window.addEventListener('resize', resize);
+    resize();
 }
 
-export function draw(board: Board) {
+let old_board = null;
+export function draw(board?: Board) {
     const gl = ctx.gl;
+
+    if(board != null)
+        old_board = board;
+    else
+        board = old_board;
+
+    if(board == null)
+        return;
 
     const dimension = Math.min(camera.dimension, board.dimension);
 
@@ -199,7 +226,7 @@ export function draw(board: Board) {
             break;
     }
 
-    transform = m.mulm4(m.scale(1/Math.max(rows, cols) * 0.9), transform);
+    transform = m.mulm4(m.scale2D(1/Math.max(rows, cols) * 0.9), transform);
 
     for(let col = 0; col < cols; col++) {
         for(let row = 0; row < rows; row++) {
@@ -216,8 +243,13 @@ export function draw(board: Board) {
                 }
             };
 
-            gl.uniformMatrix4fv(ctx.uniform.transform, false,
-                m.mulm4(m.translate(cols == 1 ? 0 : (col-1) * 2/3, rows == 1 ? 0 : (row-1) * 2/3, 0), transform));
+            gl.uniformMatrix4fv(ctx.uniform.transform, false, m.mulm4(
+                camera.aspect > 1 ?
+                    m.scale([1/camera.aspect, 1, 1, 1]) :
+                    m.scale([1, 1/camera.aspect, 1, 1]),
+                m.translate(cols == 1 ? 0 : (col-1) * 2/3, rows == 1 ? 0 : (row-1) * 2/3, 0),
+                transform
+            ));
 
             models.grid.draw([0, 0, 0, 0]);
 
@@ -245,4 +277,24 @@ export function draw(board: Board) {
             });
         }
     }
+}
+
+function mousemove(e: MouseEvent) {
+    if(e.buttons & 1) {
+        camera.rotation[0] += -config.rot_speed * e.movementX;
+        camera.rotation[1] += -config.rot_speed * e.movementY;
+        draw();
+    }
+
+    if(e.buttons & 2) {
+        camera.rotation[2] += config.rot_speed * e.movementX;
+        draw();
+    }
+}
+
+function wheel(e: WheelEvent) {
+    camera.distance += config.zoom_speed * e.deltaY;
+    if(camera.distance < 0)
+        camera.distance = 0;
+    draw();
 }

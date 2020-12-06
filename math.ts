@@ -139,12 +139,21 @@ export function translate(x: number, y: number, z: number): Mat4 {
     ];
 }
 
-export function scale(f: number): Mat4 {
+export function scale2D(f: number): Mat4 {
     return [
         f, 0, 0, 0,
         0, f, 0, 0,
-        0, 0, f, 0,
+        0, 0, 1, 0,
         0, 0, 0, 1,
+    ];
+}
+
+export function scale([x, y, z, w]: Vec4): Mat4 {
+    return [
+        x, 0, 0, 0,
+        0, y, 0, 0,
+        0, 0, z, 0,
+        0, 0, 0, w,
     ];
 }
 
