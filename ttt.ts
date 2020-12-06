@@ -6,7 +6,12 @@ export type Config = {
     zoom_speed: number,
     camera_dist: number,
     project_dist: number,
-    select_size: number,
+    point_size: number,
+};
+
+export type Winner = {
+    indexes: number[],
+    piece: Piece
 };
 
 export enum Piece {
@@ -22,6 +27,7 @@ export class Board {
     public pieces: Piece[] = [];
     public cur_piece: Piece = Piece.X;
     public select: number = 0;
+    public winner: Winner = null;
 
     constructor(dimension: Dimension) {
         this.dimension = dimension;
@@ -48,5 +54,53 @@ export class Board {
         this.select = m.pos_to_index(
             m.addv4(dir, m.index_to_pos(this.select))
         );
+    }
+
+    check_winner(): Winner {
+
+        this.winner = null;
+
+        const line_directions = function(pos: m.Vec4): m.Vec4[] {
+            const forms_line = [0, 1, 2, 3].filter(i => pos[i] == 0);
+
+            const rst = [];
+
+            for(let comb = 1; comb < (1 << forms_line.length); comb++) {
+                const dir: m.Vec4 = [0, 0, 0, 0];
+                forms_line.filter((_, i) => ((1<<i) & comb) != 0).forEach(i => dir[i] = 1);
+                rst.push(dir);
+            }
+
+            return rst;
+        };
+
+        const dir_to_indexes = function(pos: m.Vec4, dir: m.Vec4): number[] {
+            const indexes = [];
+            while(Math.max(...pos) < 3) {
+                indexes.push(m.pos_to_index(pos));
+                pos = m.addv4(pos, dir);
+            }
+            return indexes;
+        };
+
+        for(let i = 0; i < 81; i++) {
+
+            const pos = m.index_to_pos(i);
+            for(let dir of line_directions(pos)) {
+
+                const inds = dir_to_indexes(pos, dir);
+                const first_piece = this.pieces[inds[0]];
+
+                if(first_piece != null && inds.every(i => this.pieces[i] == first_piece)) {
+                    return this.winner = {
+                        indexes: inds, 
+                        piece: this.pieces[inds[0]]
+                    };
+                }
+
+            }
+        }
+
+        return null;
     }
 }

@@ -13,7 +13,7 @@ const vertex_shader_src = `
     uniform mat4 projection;
 
     uniform float project_dist;
-    uniform float select_size;
+    uniform float point_size;
 
     attribute vec4 position;
 
@@ -22,7 +22,7 @@ const vertex_shader_src = `
         projected *= project_dist / (projected.w + project_dist);
         projected.w = 1.0;
         gl_Position = transform * projected;
-        gl_PointSize = select_size;
+        gl_PointSize = point_size;
     }
 `;
 
@@ -81,7 +81,8 @@ let models: {
         [Piece.O]: Model
     }
     grid: Model,
-    select: Model
+    select: Model,
+    winner: Model,
 };
 
 let ctx: {
@@ -94,7 +95,7 @@ let ctx: {
         projection:   WebGLUniformLocation,
         color:        WebGLUniformLocation,
         project_dist: WebGLUniformLocation,
-        select_size:  WebGLUniformLocation,
+        point_size:   WebGLUniformLocation,
     }
 };
 
@@ -137,7 +138,7 @@ export function init(can: HTMLCanvasElement) {
             projection:   gl.getUniformLocation(program, 'projection'),
             color:        gl.getUniformLocation(program, 'color'),
             project_dist: gl.getUniformLocation(program, 'project_dist'),
-            select_size:  gl.getUniformLocation(program, 'select_size'),
+            point_size:   gl.getUniformLocation(program, 'point_size'),
         }
     };
 
@@ -158,6 +159,7 @@ export function init(can: HTMLCanvasElement) {
         },
         grid: new Model(model_data.grid),
         select: new Model(model_data.select),
+        winner: new Model(model_data.winner),
     };
 }
 
@@ -173,7 +175,7 @@ export function draw(board: Board) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.uniform1f(ctx.uniform.project_dist, config.project_dist);
-    gl.uniform1f(ctx.uniform.select_size, config.select_size);
+    gl.uniform1f(ctx.uniform.point_size, config.point_size);
 
     let transform = m.identity();
 
@@ -219,9 +221,19 @@ export function draw(board: Board) {
 
             models.grid.draw([0, 0, 0, 0]);
 
+            if(board.winner != null) {
+                for(let ind of board.winner.indexes) {
+                    const winner_pos = m.index_to_pos(ind);
+                    if(should_draw(winner_pos)) {
+                        models.winner.draw(m.grid_to_world(winner_pos));
+                    }
+                }
+            }
+
             const select_pos = m.index_to_pos(board.select);
-            if(should_draw(select_pos))
+            if(should_draw(select_pos)) {
                 models.select.draw(m.grid_to_world(select_pos));
+            }
 
             board.pieces.forEach((piece, i) => {
 

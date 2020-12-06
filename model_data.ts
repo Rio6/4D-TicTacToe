@@ -143,9 +143,16 @@ export const model_data = {
         elems: [0],
         verts: [0, 0, 0, 0]
     },
+    winner: {
+        mode: "POINTS",
+        color: [0, 1, 1, 1],
+        elems: [0],
+        verts: [0, 0, 0, 0]
+    },
 } as {
     x: ModelData,
     o: ModelData,
     grid: ModelData,
     select: ModelData,
+    winner: ModelData,
 };

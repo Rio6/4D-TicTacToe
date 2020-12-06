@@ -39,7 +39,10 @@ export function index_to_pos(i: number): Vec4 {
 }
 
 export function pos_to_index(pos: Vec4): number {
-    return pos[0] % 3 + pos[1] % 3 * 3 + pos[2] % 3 * 9 + pos[3] % 3 * 27;
+    return mod(pos[0], 3)
+        + mod(pos[1], 3) * 3
+        + mod(pos[2], 3) * 9
+        + mod(pos[3], 3) * 27;
 }
 
 export function addv4(a: Vec4, b: Vec4): Vec4 {

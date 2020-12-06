@@ -8,7 +8,7 @@ globalThis.config = {
     zoom_speed: 0.25,
     camera_dist: 3,
     project_dist: 3,
-    select_size: 10,
+    point_size: 10,
 };
 
 const board = new Board(Dimension.FOUR);
@@ -103,6 +103,8 @@ function keydown(e: KeyboardEvent) {
             break;
     }
 
+    if(!board.winner)
+        board.check_winner();
     graphics.draw(board);
 }
 
