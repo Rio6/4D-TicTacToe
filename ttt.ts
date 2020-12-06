@@ -28,7 +28,7 @@ export class Board {
     public pieces: Piece[] = [];
     public cur_piece: Piece = Piece.X;
     public select: number = 0;
-    public winner: Winner = null;
+    public winners: Winner[] = [];
 
     constructor(dimension: Dimension) {
         this.dimension = dimension;
@@ -57,9 +57,9 @@ export class Board {
         );
     }
 
-    check_winner(): Winner {
+    check_winners() {
 
-        this.winner = null;
+        this.winners = [];
 
         const line_directions = function(pos: m.Vec4): m.Vec4[] {
             const forms_line = [0, 1, 2, 3].filter(i => pos[i] != 1);
@@ -100,15 +100,13 @@ export class Board {
                 const first_piece = this.pieces[inds[0]];
 
                 if(first_piece != null && inds.every(i => this.pieces[i] == first_piece)) {
-                    return this.winner = {
+                    this.winners.push({
                         indexes: inds, 
                         piece: this.pieces[inds[0]]
-                    };
+                    });
                 }
 
             }
         }
-
-        return null;
     }
 }

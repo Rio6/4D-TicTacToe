@@ -255,8 +255,8 @@ export function draw(board?: Board) {
 
             models.grid.draw([0, 0, 0, 0]);
 
-            if(board.winner != null) {
-                for(let ind of board.winner.indexes) {
+            for(let winner of board.winners) {
+                for(let ind of winner.indexes) {
                     const winner_pos = m.index_to_pos(ind);
                     if(should_draw(winner_pos)) {
                         models.winner.draw(m.grid_to_world(winner_pos));

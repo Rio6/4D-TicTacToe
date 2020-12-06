@@ -77,8 +77,7 @@ function keydown(e: KeyboardEvent) {
             break;
     }
 
-    if(!board.winner)
-        board.check_winner();
+    board.check_winners();
 
     graphics.draw(board);
 }
