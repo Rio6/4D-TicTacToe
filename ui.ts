@@ -3,11 +3,11 @@ import { Config, Dimension } from './ttt';
 declare var config: Config;
 
 export function init() {
-    const menu = document.querySelector('#menu');
+    const config_menu = document.querySelector('#config');
 
     for(let key in config) {
 
-        menu.innerHTML += `
+        config_menu.innerHTML += `
             <label for="config-${key}">${key}</label>
         `;
 
@@ -23,15 +23,35 @@ export function init() {
                     </option>
                 `;
             }
-            menu.appendChild(option);
+            config_menu.appendChild(option);
 
-            menu.innerHTML += '<br />';
+            config_menu.innerHTML += '<br />';
             continue;
         }
 
-        menu.innerHTML += `
+        config_menu.innerHTML += `
             <input id="config-${key}" type="number" value="${config[key]}" />
             <br />
         `;
+    }
+
+    for(let elem of Array.from(config_menu.children)) {
+        elem.addEventListener('change', update_config);
+    }
+}
+
+export function update_config() {
+    for(let key in config) {
+        const input = document.querySelector('#config-' + key) as HTMLInputElement;
+        config[key] = Number(input.value);
+    }
+}
+
+export function toggle_menu() {
+    const menu = document.querySelector('#menu') as HTMLElement;
+    if(menu.style.right != '-500px') {
+        menu.style.right = '-500px';
+    } else {
+        menu.style.right = '0px';
     }
 }

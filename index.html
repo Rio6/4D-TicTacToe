@@ -13,7 +13,19 @@
                 padding: 1em;
                 background-color: #00000066;
                 color: white;
+                max-width: 20%;
                 text-align: right;
+                transition: right 0.5s;
+            }
+            #config {
+                display: block;
+            }
+            .key {
+                font-weight: bold;
+                display: inline-block;
+                min-width: 2em;
+                font-size: 1.2em;
+                text-align: center;
             }
             input {
                 background-color: #111111ff;
@@ -29,6 +41,18 @@
         </canvas>
         <div id="menu">
             <h1>4D TicTacToe</h1>
+            <div id="config"></div>
+
+            <ul style="list-style-type: none;">
+                <li>switch camera dimension <span class="key">[ ]</span></li>
+                <li>left/right <span class="key">&#129044; &#129046;</span></li>
+                <li>up/down <span class="key">&#129045; &#129047;</span></li>
+                <li>forward/back <span class="key">w s</span></li>
+                <li>akta/ana <span class="key">a d</span></li>
+                <li>place piece <span class="key">&blank;</span></li>
+                <li>restart game <span class="key">r</span></li>
+                <li>toggle menu <span class="key">t</span></li>
+            </ul>
         </div>
     </body>
 </html>

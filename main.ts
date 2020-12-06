@@ -42,6 +42,9 @@ function keydown(e: KeyboardEvent) {
             if(camera.dimension < board.dimension)
                 camera.dimension += 1;
             break;
+        case 't':
+            ui.toggle_menu();
+            break;
         case ' ':
             board.put_piece();
             break;
