@@ -62,13 +62,20 @@ export class Board {
         this.winner = null;
 
         const line_directions = function(pos: m.Vec4): m.Vec4[] {
-            const forms_line = [0, 1, 2, 3].filter(i => pos[i] == 0);
+            const forms_line = [0, 1, 2, 3].filter(i => pos[i] != 1);
 
             const rst = [];
 
             for(let comb = 1; comb < (1 << forms_line.length); comb++) {
                 const dir: m.Vec4 = [0, 0, 0, 0];
-                forms_line.filter((_, i) => ((1<<i) & comb) != 0).forEach(i => dir[i] = 1);
+
+                forms_line.filter((_, i) => ((1<<i) & comb) != 0).forEach(i => {
+                    if(pos[i] == 0)
+                        dir[i] = 1
+                    else
+                        dir[i] = -1
+                });
+
                 rst.push(dir);
             }
 
@@ -77,7 +84,7 @@ export class Board {
 
         const dir_to_indexes = function(pos: m.Vec4, dir: m.Vec4): number[] {
             const indexes = [];
-            while(Math.max(...pos) < 3) {
+            while(Math.max(...pos.map(Math.abs)) < 3) {
                 indexes.push(m.pos_to_index(pos));
                 pos = m.addv4(pos, dir);
             }
