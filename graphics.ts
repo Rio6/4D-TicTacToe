@@ -21,7 +21,11 @@ const vertex_shader_src = `
         vec4 projected = projection * rotation * (position + model_pos);
         projected *= project_dist / (projected.w + project_dist);
         projected.w = 1.0;
+
         gl_Position = transform * projected;
+        if(gl_Position.z > 1.0)
+            gl_Position.z = 1.0;
+
         gl_PointSize = point_size;
     }
 `;
@@ -213,7 +217,7 @@ export function draw(board?: Board) {
             gl.uniformMatrix4fv(ctx.uniform.rotation, false, m.identity());
             break;
         case Dimension.THREE:
-            transform = m.mulm4(m.perspective(config.fov, 1, 0.1, 5), m.translate(0, 0, -camera.distance), transform);
+            transform = m.mulm4(m.perspective(config.fov, 1, 0.1, 10), m.translate(0, 0, -camera.distance), transform);
             gl.uniformMatrix4fv(ctx.uniform.projection, false, m.project3D());
             gl.uniformMatrix4fv(ctx.uniform.rotation, false,
                 m.mulm4(
@@ -223,7 +227,7 @@ export function draw(board?: Board) {
             );
             break;
         case Dimension.FOUR:
-            transform = m.mulm4(m.perspective(config.fov, 1, 0.1, 5), m.translate(0, 0, -camera.distance), transform);
+            transform = m.mulm4(m.perspective(config.fov, 1, 0.1, 10), m.translate(0, 0, -camera.distance), transform);
             gl.uniformMatrix4fv(ctx.uniform.projection, false, m.identity());
             gl.uniformMatrix4fv(ctx.uniform.rotation, false,
                 m.mulm4(
