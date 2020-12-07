@@ -51,9 +51,10 @@ class ServerBoard extends Board {
         if(this.players.length == 0) {
             this.send(ws, 'first');
         } else {
-            this.send(ws, 'side', player.side);
             this.send_board(ws);
         }
+
+        this.send(ws, 'side', player.side);
 
         console.log("new player", player.side, ws._socket.remoteAddress);
 
