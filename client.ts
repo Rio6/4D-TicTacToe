@@ -9,6 +9,7 @@ export class ClientBoard extends Board {
     private url: string;
     private ws: WebSocket = null;
     private update: ClientBoardUpdate;
+    private should_reconnect = true;
 
     constructor(dimension: Dimension, code: string, update?: ClientBoardUpdate) {
         super(dimension);
@@ -23,6 +24,8 @@ export class ClientBoard extends Board {
             this.ws = null;
         }
 
+        this.should_reconnect = true;
+
         this.ws = new WebSocket(this.url);
 
         this.ws.addEventListener('message', (e: MessageEvent) => this.onmessage(e));
@@ -30,9 +33,16 @@ export class ClientBoard extends Board {
     }
 
     reconnect() {
-        this.ws?.close();
-        this.ws = null;;
-        setTimeout(() => this.connect(), 1000);
+        if(this.should_reconnect) {
+            this.ws?.close();
+            this.ws = null;;
+            setTimeout(() => this.connect(), 1000);
+        }
+    }
+
+    disconnect() {
+        this.should_reconnect = false;
+        this.ws.close();
     }
 
     onmessage(e: MessageEvent) {

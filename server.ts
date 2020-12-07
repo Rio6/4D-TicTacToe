@@ -28,10 +28,11 @@ class ServerBoard extends Board {
     }
 
     add_player(ws: WebSocket) {
-        console.log("new player", ws._socket.remoteAddress);
+
+        const sides = this.players.map(p => p.side);
 
         const player: Player = {
-            side: [Piece.X, Piece.O][this.players.length],
+            side: !sides.includes(Piece.X) ? Piece.X : !sides.includes(Piece.O) ? Piece.O : null,
             ws: ws
         };
 
@@ -40,6 +41,8 @@ class ServerBoard extends Board {
         });
 
         ws.on('close', () => {
+            console.log("disconnect", ws._socket.remoteAddress);
+
             const index = this.players.indexOf(player);
             if(index >= 0)
                 this.players.splice(index, 1);
@@ -49,6 +52,8 @@ class ServerBoard extends Board {
             ws.send('');
         else
             this.send_board(ws);
+
+        console.log("new player", player.side, ws._socket.remoteAddress);
 
         this.players.push(player);
     }

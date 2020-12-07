@@ -54,8 +54,11 @@ function keydown(e: KeyboardEvent) {
             board.reset(config.dimension);
             break;
         case 'c':
+            if(board instanceof ClientBoard)
+                board.disconnect();
+
             if(config.code != '')
-                board = new ClientBoard(config.dimension, 'abc', graphics.draw);
+                board = new ClientBoard(config.dimension, config.code, graphics.draw);
             else
                 board = new Board(config.dimension);
             break;
