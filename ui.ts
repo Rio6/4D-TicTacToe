@@ -14,6 +14,10 @@ const config_names = {
     code: "Room Code",
 };
 
+function piece_to_text(piece: Piece) {
+    return ["X", "O"][piece] ?? "spectator";
+}
+
 export function init() {
     const config_menu = document.querySelector('#config');
 
@@ -83,9 +87,11 @@ export function update_status(board: Board) {
 
     if(board instanceof ClientBoard && board.connected()) {
         status_elm.innerHTML = `
-            ${board.url}
+            your side: ${piece_to_text(board.side)}
             <br />
-            side: ${board.side == Piece.X ? 'X' : board.side == Piece.O ? 'O' : "spectator"}
+            waiting for: ${piece_to_text(board.cur_piece)}
+            <br />
+            ${board.url}
         `;
     } else {
         status_elm.innerHTML = 'not connected';
