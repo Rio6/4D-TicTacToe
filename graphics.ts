@@ -100,7 +100,7 @@ let ctx: {
 };
 
 export let camera: {
-    rotation: [ number, number, number ],
+    rotation: [ number, number, number, number, number ],
     distance: number,
     dimension: Dimension,
     aspect: number,
@@ -148,7 +148,7 @@ export function init(can: HTMLCanvasElement) {
     };
 
     camera = {
-        rotation: [0, 0, 0],
+        rotation: [0, 0, 0, 0, 0],
         dimension: Dimension.TWO,
         distance: config.camera_dist,
         aspect: 1,
@@ -216,13 +216,24 @@ export function draw(board?: Board) {
             transform = m.mulm4(m.perspective(config.fov, 1, 0.1, 5), m.translate(0, 0, -camera.distance), transform);
             gl.uniformMatrix4fv(ctx.uniform.projection, false, m.project3D());
             gl.uniformMatrix4fv(ctx.uniform.rotation, false,
-                m.mulm4(m.rotate3D(camera.rotation[1], [1, 0, 0]), m.rotate3D(camera.rotation[0], [0, 1, 0])));
+                m.mulm4(
+                    m.rotate3D(camera.rotation[1], [1, 0, 0]),
+                    m.rotate3D(camera.rotation[0], [0, 1, 0])
+                )
+            );
             break;
         case Dimension.FOUR:
             transform = m.mulm4(m.perspective(config.fov, 1, 0.1, 5), m.translate(0, 0, -camera.distance), transform);
             gl.uniformMatrix4fv(ctx.uniform.projection, false, m.identity());
             gl.uniformMatrix4fv(ctx.uniform.rotation, false,
-                m.mulm4(m.rotate4D(camera.rotation[2]), m.rotate3D(camera.rotation[1], [1, 0, 0]), m.rotate3D(camera.rotation[0], [0, 1, 0])));
+                m.mulm4(
+                    m.rotateZW(camera.rotation[4]),
+                    m.rotate3D(camera.rotation[1], [1, 0, 0]),
+                    m.rotate3D(camera.rotation[0], [0, 1, 0]),
+                    m.rotateYW(camera.rotation[3]),
+                    m.rotateXW(camera.rotation[2]),
+                )
+            );
             break;
     }
 
@@ -283,15 +294,21 @@ export function draw(board?: Board) {
 
 function mousemove(e: MouseEvent) {
     if(e.buttons & 1) {
-        camera.rotation[0] += -config.rot_speed * e.movementX;
-        camera.rotation[1] += -config.rot_speed * e.movementY;
-        draw();
+        if(e.shiftKey) {
+            camera.rotation[2] += -config.rot_speed * e.movementX;
+            camera.rotation[3] += -config.rot_speed * e.movementY;
+        } else {
+            camera.rotation[0] += -config.rot_speed * e.movementX;
+            camera.rotation[1] += -config.rot_speed * e.movementY;
+        }
     }
 
     if(e.buttons & 2) {
-        camera.rotation[2] += config.rot_speed * e.movementX;
-        draw();
+        camera.rotation[4] += -config.rot_speed * e.movementY;
     }
+
+    if(e.buttons != 0)
+        draw();
 }
 
 function wheel(e: WheelEvent) {

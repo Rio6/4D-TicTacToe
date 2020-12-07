@@ -194,7 +194,31 @@ export function rotate3D(th: number, axis: Vec3): Mat4 {
     ];
 }
 
-export function rotate4D(th: number): Mat4 {
+export function rotateXW(th: number): Mat4 {
+    const s = Math.sin(th);
+    const c = Math.cos(th);
+
+    return [
+        c, 0, 0, s,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        -s, 0, 0, c,
+    ]
+}
+
+export function rotateYW(th: number): Mat4 {
+    const s = Math.sin(th);
+    const c = Math.cos(th);
+
+    return [
+        1, 0, 0, 0,
+        0, c, 0, s,
+        0, 0, 1, 0,
+        0, -s, 0, c,
+    ]
+}
+
+export function rotateZW(th: number): Mat4 {
     const s = Math.sin(th);
     const c = Math.cos(th);
 
