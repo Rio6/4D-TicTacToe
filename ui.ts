@@ -19,10 +19,6 @@ export function init() {
 
     for(let key in config) {
 
-        config_menu.innerHTML += `
-            <label for="config-${key}">${config_names[key] ?? key}</label>
-        `;
-
         if(key == 'dimension') {
             const dimensions = { "2D": Dimension.TWO, "3D": Dimension.THREE, "4D": Dimension.FOUR };
             const option = document.createElement('select');
@@ -47,6 +43,11 @@ export function init() {
             <input id="config-${key}" type="number" value="${config[key]}" />
         `;
         }
+
+
+        config_menu.innerHTML += `
+            <label for="config-${key}">${config_names[key] ?? key}</label>
+        `;
 
         config_menu.innerHTML += '<br />';
     }
