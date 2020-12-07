@@ -270,6 +270,11 @@ export function draw(board?: Board) {
 
             models.grid.draw([0, 0, 0, 0]);
 
+            const select_pos = m.index_to_pos(board.select);
+            if(should_draw(select_pos)) {
+                models.select.draw(m.grid_to_world(select_pos));
+            }
+
             for(let winner of board.winners) {
                 for(let ind of winner.indexes) {
                     const winner_pos = m.index_to_pos(ind);
@@ -277,11 +282,6 @@ export function draw(board?: Board) {
                         models.winner.draw(m.grid_to_world(winner_pos));
                     }
                 }
-            }
-
-            const select_pos = m.index_to_pos(board.select);
-            if(should_draw(select_pos)) {
-                models.select.draw(m.grid_to_world(select_pos));
             }
 
             board.pieces.forEach((piece, i) => {
