@@ -1,7 +1,6 @@
 import { Board, Dimension, Piece } from './ttt';
 
-//const ws_url = 'ws://app.r26.me:8869';
-const ws_url = 'ws://localhost:8869';
+const ws_url = 'ws://app.r26.me:8869';
 
 export type ClientBoardUpdate = (ClientBoard) => void;
 
@@ -47,6 +46,10 @@ export class ClientBoard extends Board {
         this.ws.close();
     }
 
+    connected() : boolean {
+        return this.ws?.readyState == WebSocket.OPEN;
+    }
+
     onmessage(e: MessageEvent) {
         const data = JSON.parse(e.data);
 
@@ -70,7 +73,7 @@ export class ClientBoard extends Board {
     }
 
     send(...args: any[]) {
-        if(this.ws?.readyState == WebSocket.OPEN)
+        if(this.connected())
             this.ws.send(JSON.stringify(args));
     }
 

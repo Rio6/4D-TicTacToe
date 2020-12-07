@@ -3,13 +3,24 @@ import { ClientBoard } from './client';
 
 declare var config: Config;
 
+const config_names = {
+    dimension: "Board Dimension",
+    rot_speed: "Rotation Speed",
+    zoom_speed: "Zoom Speed",
+    camera_dist: "Default Camera Distance",
+    project_dist: "Projection Distance in 4D",
+    point_size: "Point Size",
+    fov: "Field of View",
+    code: "Room Code",
+};
+
 export function init() {
     const config_menu = document.querySelector('#config');
 
     for(let key in config) {
 
         config_menu.innerHTML += `
-            <label for="config-${key}">${key}</label>
+            <label for="config-${key}">${config_names[key] ?? key}</label>
         `;
 
         if(key == 'dimension') {
@@ -26,20 +37,18 @@ export function init() {
             }
             config_menu.appendChild(option);
 
-            config_menu.innerHTML += '<br />';
-
         } else if(key == 'code') {
             config_menu.innerHTML += `
             <input id="config-${key}" type="text" value="${config[key]}" />
-            <br />
         `;
 
         } else {
-        config_menu.innerHTML += `
+            config_menu.innerHTML += `
             <input id="config-${key}" type="number" value="${config[key]}" />
-            <br />
         `;
         }
+
+        config_menu.innerHTML += '<br />';
     }
 
     for(let elem of Array.from(config_menu.children)) {
@@ -59,19 +68,19 @@ export function update_config() {
 }
 
 export function toggle_menu() {
-    const menu = document.querySelector('#menu') as HTMLElement;
-    if(menu.style.right != '-500px') {
-        menu.style.right = '-500px';
-    } else {
-        menu.style.right = '0px';
+    for(let elem of Array.from(document.querySelectorAll('.overlay')) as HTMLElement[]) {
+        if(elem.style.top != '-100%') {
+            elem.style.top = '-100%';
+        } else {
+            elem.style.top = '0px';
+        }
     }
 }
 
 export function update_status(board: Board) {
     const status_elm = document.querySelector('#status');
 
-    if(board instanceof ClientBoard && board.url != null) {
-        console.log(board.side);
+    if(board instanceof ClientBoard && board.connected()) {
         status_elm.innerHTML = `
             ${board.url}
             <br />

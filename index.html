@@ -6,19 +6,33 @@
             require('main');
         </script>
         <style>
-            #menu {
-                position: fixed;
-                top: 0;
-                right: 0;
+            .overlay {
                 padding: 1em;
                 background-color: #00000066;
                 color: white;
+                transition: top 0.5s;
+            }
+            #menu {
+                position: fixed;
+                top: 0;
+                left: 0;
                 max-width: 20%;
-                text-align: right;
-                transition: right 0.5s;
+            }
+            #menu ul {
+                padding-left: 0;
+                list-style-type: none;
             }
             #config {
-                display: block;
+                position: fixed;
+                right: 0;
+                top: 0;
+                text-align: right;
+                padding: 1em;
+            }
+            #config * {
+                width: 5em;
+                background-color: #00000066;
+                color: white;
             }
             .key {
                 font-weight: bold;
@@ -31,7 +45,6 @@
                 background-color: #111111ff;
                 border-color: black;
                 color: white;
-                width: 5em;
             }
         </style>
     </head>
@@ -39,23 +52,38 @@
         <canvas id="canvas" tabindex=1 width=100 height=100>
             Needs HTML5
         </canvas>
-        <div id="menu">
+        <div id="menu" class="overlay">
             <h1>4D TicTacToe</h1>
-            <div id="config"></div>
+            <p>
+            Press r after changing the values to start a new game.
+            </p>
 
-            <ul style="list-style-type: none;">
-                <li>switch camera dimension <span class="key">[ ]</span></li>
-                <li>left/right <span class="key">&#129044; &#129046;</span></li>
-                <li>up/down <span class="key">&#129045; &#129047;</span></li>
-                <li>forward/back <span class="key">w s</span></li>
-                <li>akta/ana <span class="key">a d</span></li>
-                <li>place piece <span class="key">&blank;</span></li>
-                <li>restart game <span class="key">r</span></li>
-                <li>(dis)connect to server <span class="key">c</span></li>
-                <li>toggle menu <span class="key">t</span></li>
+            <p>
+            Press [ and ] to switch between 2D, 3D, 4D views of the board.
+            </p>
+
+            <p>
+            Press c to connect to multiplayer room specified by room code.
+            If there's no room code, it switched back to local game.
+            </p>
+
+            <h3>Keys</h3>
+            <ul>
+                <li><span class="key">[ ]</span> switch camera dimension </li>
+                <li><span class="key">&#129044; &#129046;</span> move left/right </li>
+                <li><span class="key">&#129045; &#129047;</span> move up/down </li>
+                <li><span class="key">w s</span> move forward/back </li>
+                <li><span class="key">a d</span> move akta/ana </li>
+                <li><span class="key">&blank;</span> place piece </li>
+                <li><span class="key">r</span> restart game </li>
+                <li><span class="key">c</span> (dis)connect server </li>
+                <li><span class="key">t</span> toggle menu </li>
             </ul>
 
             <div id="status"></div>
+        </div>
+        <div id="config" class="overlay">
+            <h3>Config</h3>
         </div>
     </body>
 </html>
