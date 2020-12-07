@@ -12,9 +12,9 @@ globalThis.config = {
     project_dist: 3,
     point_size: 10,
     fov: 60,
+    code: '',
 };
 
-//let board = new ClientBoard(config.dimension, 'abc', graphics.draw);
 let board = new Board(config.dimension);
 
 function init() {
@@ -52,6 +52,12 @@ function keydown(e: KeyboardEvent) {
             break;
         case 'r':
             board.reset(config.dimension);
+            break;
+        case 'c':
+            if(config.code != '')
+                board = new ClientBoard(config.dimension, 'abc', graphics.draw);
+            else
+                board = new Board(config.dimension);
             break;
         case 'ArrowRight':
             board.move([1, 0, 0, 0]);

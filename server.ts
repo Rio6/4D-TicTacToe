@@ -101,7 +101,7 @@ function main() {
     wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
         const code = req.url.replace(/^\/+/, '');
 
-        if(code.length == 0)
+        if(code === '')
             return;
 
         if(boards.has(code)) {

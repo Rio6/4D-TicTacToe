@@ -8,6 +8,7 @@ export type Config = {
     project_dist: number,
     point_size: number,
     fov: number,
+    code: string,
 };
 
 export type Winner = {

@@ -14,7 +14,7 @@ export function init() {
         if(key == 'dimension') {
             const dimensions = { "2D": Dimension.TWO, "3D": Dimension.THREE, "4D": Dimension.FOUR };
             const option = document.createElement('select');
-            option.id = 'config-dimension';
+            option.id = 'config-' + key;
 
             for(let dim in dimensions) {
                 option.innerHTML += `
@@ -26,13 +26,19 @@ export function init() {
             config_menu.appendChild(option);
 
             config_menu.innerHTML += '<br />';
-            continue;
-        }
 
+        } else if(key == 'code') {
+            config_menu.innerHTML += `
+            <input id="config-${key}" type="text" value="${config[key]}" />
+            <br />
+        `;
+
+        } else {
         config_menu.innerHTML += `
             <input id="config-${key}" type="number" value="${config[key]}" />
             <br />
         `;
+        }
     }
 
     for(let elem of Array.from(config_menu.children)) {
@@ -43,7 +49,11 @@ export function init() {
 export function update_config() {
     for(let key in config) {
         const input = document.querySelector('#config-' + key) as HTMLInputElement;
-        config[key] = Number(input.value);
+
+        if(key == 'code')
+            config[key] = input.value;
+        else
+            config[key] = Number(input.value);
     }
 }
 
