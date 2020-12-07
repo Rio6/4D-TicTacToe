@@ -58,13 +58,14 @@ function keydown(e: KeyboardEvent) {
             if(board instanceof ClientBoard)
                 board.disconnect();
 
-            if(config.code != '')
+            if(config.code != '') {
                 board = new ClientBoard(config.dimension, config.code, (board: Board) => {
                     ui.update_status(board);
                     graphics.draw(board);
                 });
-            else
+            } else {
                 board = new Board(config.dimension);
+            }
             break;
         case 'ArrowRight':
             board.move([1, 0, 0, 0]);

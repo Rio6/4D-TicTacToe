@@ -153,7 +153,7 @@ export function init(can: HTMLCanvasElement) {
 
     camera = {
         rotation: [0, 0, 0, 0, 0],
-        dimension: Dimension.TWO,
+        dimension: Dimension.FOUR,
         distance: config.camera_dist,
         aspect: 1,
     };
@@ -197,7 +197,8 @@ export function draw(board?: Board) {
     if(board == null)
         return;
 
-    const dimension = Math.min(camera.dimension, board.dimension);
+    if(camera.dimension > board.dimension)
+        camera.dimension = board.dimension;
 
     const unfold = board.dimension - camera.dimension;
     const cols = unfold >= 1 ? 3 : 1;
@@ -210,7 +211,7 @@ export function draw(board?: Board) {
 
     let transform = m.identity();
 
-    switch(dimension) {
+    switch(camera.dimension) {
         case Dimension.TWO:
             gl.uniformMatrix4fv(ctx.uniform.transform, false, m.identity());
             gl.uniformMatrix4fv(ctx.uniform.projection, false, m.project2D());
