@@ -1,4 +1,5 @@
 import { Config, Piece, Dimension, Board } from './ttt';
+import { ClientBoard } from './client';
 import * as ui from './ui';
 import * as graphics from './graphics';
 
@@ -13,6 +14,7 @@ globalThis.config = {
     fov: 60,
 };
 
+//let board = new ClientBoard(config.dimension, 'abc', graphics.draw);
 let board = new Board(config.dimension);
 
 function init() {
@@ -49,7 +51,7 @@ function keydown(e: KeyboardEvent) {
             board.put_piece();
             break;
         case 'r':
-            board = new Board(config.dimension);
+            board.reset(config.dimension);
             break;
         case 'ArrowRight':
             board.move([1, 0, 0, 0]);

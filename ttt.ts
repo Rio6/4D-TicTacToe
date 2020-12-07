@@ -25,13 +25,21 @@ export enum Dimension {
 
 export class Board {
     public dimension: number;
-    public pieces: Piece[] = [];
-    public cur_piece: Piece = Piece.X;
-    public select: number = 0;
-    public winners: Winner[] = [];
+    public pieces: Piece[];
+    public cur_piece: Piece;
+    public select: number;
+    public winners: Winner[];
 
     constructor(dimension: Dimension) {
+        this.reset(dimension);
+    }
+
+    reset(dimension: Dimension = this.dimension ?? Dimension.FOUR) {
         this.dimension = dimension;
+        this.pieces = [];
+        this.cur_piece = Piece.X;
+        this.select = 0;
+        this.winners = [];
     }
 
     swap_piece() {
@@ -41,14 +49,11 @@ export class Board {
             this.cur_piece = Piece.X;
     }
 
-    put_piece(): boolean {
+    put_piece() {
         if(this.pieces[this.select] == null) {
             this.pieces[this.select] = this.cur_piece;
             this.swap_piece();
-            return true;
         }
-
-        return false;
     }
 
     move(dir: m.Vec4) {
@@ -108,5 +113,20 @@ export class Board {
 
             }
         }
+    }
+
+    serialize(): string {
+        return JSON.stringify({
+            dimension: this.dimension,
+            pieces: this.pieces,
+            cur_piece: this.cur_piece
+        });
+    }
+
+    deserialize(json: string) {
+        const data = JSON.parse(json);
+        this.dimension = data.dimension;
+        this.pieces = data.pieces;
+        this.cur_piece = data.cur_piece;
     }
 }
