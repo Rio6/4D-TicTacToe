@@ -48,10 +48,12 @@ class ServerBoard extends Board {
                 this.players.splice(index, 1);
         });
 
-        if(this.players.length == 0)
-            ws.send('');
-        else
+        if(this.players.length == 0) {
+            this.send(ws, 'first');
+        } else {
+            this.send(ws, 'side', player.side);
             this.send_board(ws);
+        }
 
         console.log("new player", player.side, ws._socket.remoteAddress);
 
@@ -76,9 +78,13 @@ class ServerBoard extends Board {
         this.send_to_all();
     }
 
-    send_board(ws?: WebSocket) {
+    send(ws, ...args: any[]) {
         if(ws?.readyState == WebSocket.OPEN)
-            ws.send(this.serialize());
+            ws.send(JSON.stringify(args));
+    }
+
+    send_board(ws?: WebSocket) {
+        this.send(ws, 'board', this.serialize());
     }
 
     send_to_all() {

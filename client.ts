@@ -6,7 +6,9 @@ const ws_url = 'ws://localhost:8869';
 export type ClientBoardUpdate = (ClientBoard) => void;
 
 export class ClientBoard extends Board {
-    private url: string;
+    public url: string;
+    public side: Piece = null;
+
     private ws: WebSocket = null;
     private update: ClientBoardUpdate;
     private should_reconnect = true;
@@ -46,10 +48,18 @@ export class ClientBoard extends Board {
     }
 
     onmessage(e: MessageEvent) {
-        if(e.data == '') {
-            this.reset();
-        } else {
-            this.deserialize(e.data);
+        const data = JSON.parse(e.data);
+
+        switch(data[0]) {
+            case 'first':
+                this.reset();
+                break;
+            case 'side':
+                this.side = data[1];
+                break;
+            case 'board':
+                this.deserialize(data[1]);
+                break;
         }
 
         this.check_winners();
@@ -68,7 +78,7 @@ export class ClientBoard extends Board {
         if(this.ws != null)
             this.send('reset', dimension);
         else
-            super.reset();
+            super.reset(dimension);
     }
 
     put_piece() {

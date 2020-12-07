@@ -30,6 +30,7 @@ function init() {
 
     graphics.init(can);
     graphics.draw(board);
+    ui.update_status(board);
 }
 
 function keydown(e: KeyboardEvent) {
@@ -58,7 +59,10 @@ function keydown(e: KeyboardEvent) {
                 board.disconnect();
 
             if(config.code != '')
-                board = new ClientBoard(config.dimension, config.code, graphics.draw);
+                board = new ClientBoard(config.dimension, config.code, (board: Board) => {
+                    ui.update_status(board);
+                    graphics.draw(board);
+                });
             else
                 board = new Board(config.dimension);
             break;
@@ -91,6 +95,7 @@ function keydown(e: KeyboardEvent) {
     board.check_winners();
 
     graphics.draw(board);
+    ui.update_status(board);
 }
 
 window.onload = init;

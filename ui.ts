@@ -1,4 +1,5 @@
-import { Config, Dimension } from './ttt';
+import { Config, Dimension, Board, Piece } from './ttt';
+import { ClientBoard } from './client';
 
 declare var config: Config;
 
@@ -63,5 +64,20 @@ export function toggle_menu() {
         menu.style.right = '-500px';
     } else {
         menu.style.right = '0px';
+    }
+}
+
+export function update_status(board: Board) {
+    const status_elm = document.querySelector('#status');
+
+    if(board instanceof ClientBoard && board.url != null) {
+        console.log(board.side);
+        status_elm.innerHTML = `
+            ${board.url}
+            <br />
+            side: ${board.side == Piece.X ? 'X' : board.side == Piece.O ? 'O' : "spectator"}
+        `;
+    } else {
+        status_elm.innerHTML = 'not connected';
     }
 }
