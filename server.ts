@@ -126,6 +126,8 @@ function main() {
 
         ws.on('close', remove_empty);
     });
+
+    console.log("started");
 }
 
 main();
