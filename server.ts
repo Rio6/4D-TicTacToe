@@ -1,6 +1,5 @@
 import * as WebSocket from 'ws';
 import { IncomingMessage } from 'http'
-import { URL } from 'url';
 import { Board, Dimension, Piece } from './ttt';
 
 const PORT = 8869;
