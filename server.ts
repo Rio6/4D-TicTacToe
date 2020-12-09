@@ -16,7 +16,7 @@ class ServerBoard extends Board {
     private code: string;
 
     constructor(code: string) {
-        super(Dimension.FOUR);
+        super(Dimension.FOUR, 3);
         this.code = code;
 
         console.log("new board", code);
@@ -65,7 +65,7 @@ class ServerBoard extends Board {
 
         switch(data[0]) {
             case 'reset':
-                super.reset(data[1]);
+                super.reset(data[1], data[2]);
                 break;
             case 'put_piece':
                 if(player.side == this.cur_piece) {

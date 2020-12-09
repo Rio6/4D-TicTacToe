@@ -2,6 +2,7 @@ import * as m from './math';
 
 export type Config = {
     dimension: Dimension,
+    nxn: number,
     rot_speed: number,
     zoom_speed: number,
     camera_dist: number,
@@ -21,22 +22,24 @@ export enum Piece {
 }
 
 export enum Dimension {
-    TWO, THREE, FOUR
+    TWO = 2, THREE, FOUR
 }
 
 export class Board {
     public dimension: number;
+    public nxn: number;
     public pieces: Piece[];
     public cur_piece: Piece;
     public select: number;
     public winners: Winner[];
 
-    constructor(dimension: Dimension) {
-        this.reset(dimension);
+    constructor(dimension: Dimension, nxn: number) {
+        this.reset(dimension, nxn);
     }
 
-    reset(dimension: Dimension = this.dimension ?? Dimension.FOUR) {
+    reset(dimension: Dimension = this.dimension, nxn: number = this.nxn) {
         this.dimension = dimension;
+        this.nxn = nxn;
         this.pieces = [];
         this.cur_piece = Piece.X;
         this.select = 0;
@@ -58,14 +61,11 @@ export class Board {
     }
 
     move(dir: m.Vec4) {
-        this.select = m.pos_to_index(
-            m.addv4(dir, m.index_to_pos(this.select))
+        this.select = this.pos_to_index(
+            m.addv4(dir, this.index_to_pos(this.select))
         );
 
-        if(this.dimension == Dimension.TWO)
-            this.select %= 9;
-        else if(this.dimension == Dimension.THREE)
-            this.select %= 27;
+        this.select %= this.nxn**(this.dimension);
     }
 
     check_winners() {
@@ -93,10 +93,11 @@ export class Board {
             return rst;
         };
 
+        const _this = this;
         const dir_to_indexes = function(pos: m.Vec4, dir: m.Vec4): number[] {
             const indexes = [];
-            while(Math.max(...pos.map(Math.abs)) < 3) {
-                indexes.push(m.pos_to_index(pos));
+            while(Math.max(...pos.map(Math.abs)) < _this.nxn) {
+                indexes.push(_this.pos_to_index(pos));
                 pos = m.addv4(pos, dir);
             }
             return indexes;
@@ -104,7 +105,7 @@ export class Board {
 
         for(let i = 0; i < 81; i++) {
 
-            const pos = m.index_to_pos(i);
+            const pos = this.index_to_pos(i);
             for(let dir of line_directions(pos)) {
 
                 const inds = dir_to_indexes(pos, dir);
@@ -124,6 +125,7 @@ export class Board {
     serialize(): string {
         return JSON.stringify({
             dimension: this.dimension,
+            nxn: this.nxn,
             pieces: this.pieces,
             cur_piece: this.cur_piece
         });
@@ -132,7 +134,24 @@ export class Board {
     deserialize(json: string) {
         const data = JSON.parse(json);
         this.dimension = data.dimension;
+        this.nxn = data.nxn;
         this.pieces = data.pieces;
         this.cur_piece = data.cur_piece;
+    }
+
+    index_to_pos(i: number): m.Vec4 {
+        return [
+            i % this.nxn,
+            m.div(i % this.nxn**2, this.nxn),
+            m.div(i % this.nxn**3, this.nxn**2),
+            m.div(i,  this.nxn**3),
+        ];
+    }
+
+    pos_to_index(pos: m.Vec4): number {
+        return m.mod(pos[0], this.nxn)
+             + m.mod(pos[1], this.nxn) * this.nxn
+             + m.mod(pos[2], this.nxn) * this.nxn**2
+             + m.mod(pos[3], this.nxn) * this.nxn**3;
     }
 }

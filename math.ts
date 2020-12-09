@@ -20,29 +20,13 @@ export function mod(a: number, b: number): number {
     return (a % b + b) % b;
 }
 
-export function grid_to_world([x, y, z, w]: Vec4): Vec4 {
+export function grid_to_world([x, y, z, w]: Vec4, nxn: number): Vec4 {
     return [
-        (x - 1) * 2/3,
-        (y - 1) * 2/3,
-       -(z - 1) * 2/3,
-        (w - 1) * 2/3,
+        (x * 2/nxn) - 1 + 1/nxn,
+        (y * 2/nxn) - 1 + 1/nxn,
+       -(z * 2/nxn) + 1 - 1/nxn,
+        (w * 2/nxn) - 1 + 1/nxn,
     ];
-}
-
-export function index_to_pos(i: number): Vec4 {
-    return [
-        i % 3,
-        div(i % 9, 3),
-        div(i % 27, 9),
-        div(i, 27),
-    ];
-}
-
-export function pos_to_index(pos: Vec4): number {
-    return mod(pos[0], 3)
-        + mod(pos[1], 3) * 3
-        + mod(pos[2], 3) * 9
-        + mod(pos[3], 3) * 27;
 }
 
 export function addv4(a: Vec4, b: Vec4): Vec4 {

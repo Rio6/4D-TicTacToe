@@ -12,8 +12,8 @@ export class ClientBoard extends Board {
     private update: ClientBoardUpdate;
     private should_reconnect = true;
 
-    constructor(dimension: Dimension, code: string, update?: ClientBoardUpdate) {
-        super(dimension);
+    constructor(dimension: Dimension, nxn: number, code: string, update?: ClientBoardUpdate) {
+        super(dimension, nxn);
         this.url = ws_url + '/' + code;
         this.update = update;
         this.connect();
@@ -77,11 +77,11 @@ export class ClientBoard extends Board {
             this.ws.send(JSON.stringify(args));
     }
 
-    reset(dimension: Dimension = this.dimension ?? Dimension.FOUR) {
+    reset(dimension: Dimension = this.dimension, nxn = this.nxn) {
         if(this.ws != null)
-            this.send('reset', dimension);
+            this.send('reset', dimension, nxn);
         else
-            super.reset(dimension);
+            super.reset(dimension, nxn);
     }
 
     put_piece() {

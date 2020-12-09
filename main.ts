@@ -7,6 +7,7 @@ declare var config: Config;
 declare const window: any;
 window.config = {
     dimension: Dimension.FOUR,
+    nxn: 3,
     rot_speed: 0.01,
     zoom_speed: 0.25,
     camera_dist: 3,
@@ -16,7 +17,7 @@ window.config = {
     code: '',
 };
 
-let board = new Board(config.dimension);
+let board = new Board(config.dimension, config.nxn);
 
 function init() {
     const can = document.getElementById('canvas') as HTMLCanvasElement;
@@ -53,19 +54,19 @@ function keydown(e: KeyboardEvent) {
             board.put_piece();
             break;
         case 'r':
-            board.reset(config.dimension);
+            board.reset(config.dimension, config.nxn);
             break;
         case 'c':
             if(board instanceof ClientBoard)
                 board.disconnect();
 
             if(config.code != '') {
-                board = new ClientBoard(config.dimension, config.code, (board: Board) => {
+                board = new ClientBoard(config.dimension, config.nxn, config.code, (board: Board) => {
                     ui.update_status(board);
                     graphics.draw(board);
                 });
             } else {
-                board = new Board(config.dimension);
+                board = new Board(config.dimension, config.nxn);
             }
             break;
         case 'ArrowRight':

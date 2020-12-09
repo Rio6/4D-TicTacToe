@@ -1,4 +1,4 @@
-import { model_data, ModelData } from './model_data';
+import { model_data, grid_data, ModelData } from './model_data';
 import { Config, Piece, Dimension, Board } from './ttt';
 import * as m from './math';
 
@@ -65,6 +65,24 @@ class Model {
         gl.enableVertexAttribArray(0);
 
         this.ebo = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ebo);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int32Array(elems), gl.STATIC_DRAW);
+    }
+
+    update_data({mode, color, elems, verts}: ModelData) {
+        const gl = ctx.gl;
+
+        this.color = color;
+        this.mode = gl[mode];
+        this.elem_count = elems.length;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+
+        gl.bindVertexArray(this.vao);
+        gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(0);
+
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ebo);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int32Array(elems), gl.STATIC_DRAW);
     }
@@ -163,7 +181,7 @@ export function init(can: HTMLCanvasElement) {
             [Piece.X]: new Model(model_data.x),
             [Piece.O]: new Model(model_data.o),
         },
-        grid: new Model(model_data.grid),
+        grid: null, // dynamically created in draw()
         select: new Model(model_data.select),
         winner: new Model(model_data.winner),
     };
@@ -186,6 +204,7 @@ export function init(can: HTMLCanvasElement) {
 }
 
 let old_board = null;
+let old_nxn = 0;
 export function draw(board?: Board) {
     const gl = ctx.gl;
 
@@ -196,6 +215,16 @@ export function draw(board?: Board) {
 
     if(board == null)
         return;
+
+    if(old_nxn != board.nxn) {
+        old_nxn = board.nxn;
+
+        const data = grid_data(board.nxn);
+        if(models.grid == null)
+            models.grid = new Model(data);
+        else
+            models.grid.update_data(data);
+    }
 
     if(camera.dimension > board.dimension)
         camera.dimension = board.dimension;
@@ -271,16 +300,16 @@ export function draw(board?: Board) {
 
             models.grid.draw([0, 0, 0, 0]);
 
-            const select_pos = m.index_to_pos(board.select);
+            const select_pos = board.index_to_pos(board.select);
             if(should_draw(select_pos)) {
-                models.select.draw(m.grid_to_world(select_pos));
+                models.select.draw(m.grid_to_world(select_pos, board.nxn));
             }
 
             for(let winner of board.winners) {
                 for(let ind of winner.indexes) {
-                    const winner_pos = m.index_to_pos(ind);
+                    const winner_pos = board.index_to_pos(ind);
                     if(should_draw(winner_pos)) {
-                        models.winner.draw(m.grid_to_world(winner_pos));
+                        models.winner.draw(m.grid_to_world(winner_pos, board.nxn));
                     }
                 }
             }
@@ -288,9 +317,9 @@ export function draw(board?: Board) {
             board.pieces.forEach((piece, i) => {
 
                 if(piece != null) {
-                    const pos = m.index_to_pos(i);
+                    const pos = board.index_to_pos(i);
                     if(should_draw(pos))
-                        models.pieces[piece].draw(m.grid_to_world(pos));
+                        models.pieces[piece].draw(m.grid_to_world(pos, board.nxn));
                 }
             });
         }
