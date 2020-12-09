@@ -4,7 +4,8 @@ import * as ui from './ui';
 import * as graphics from './graphics';
 
 declare var config: Config;
-globalThis.config = {
+declare const window: any;
+window.config = {
     dimension: Dimension.FOUR,
     rot_speed: 0.01,
     zoom_speed: 0.25,
