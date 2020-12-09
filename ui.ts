@@ -19,8 +19,17 @@ function piece_to_text(piece: Piece) {
 }
 
 export function init() {
-    const config_menu = document.querySelector('#config');
 
+    const can = document.querySelector('#canvas') as HTMLElement;
+    window.addEventListener('keydown', (e: KeyboardEvent) => {
+        const name = document.activeElement.nodeName.toLowerCase();
+        if(name != 'input' && name != 'canvas') {
+            can.focus();
+            can.dispatchEvent(new KeyboardEvent(e.type, e));
+        }
+    });
+
+    const config_menu = document.querySelector('#config');
     for(let key in config) {
 
         if(key == 'dimension') {
