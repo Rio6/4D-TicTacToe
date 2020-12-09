@@ -61,6 +61,11 @@ export class Board {
         this.select = m.pos_to_index(
             m.addv4(dir, m.index_to_pos(this.select))
         );
+
+        if(this.dimension == Dimension.TWO)
+            this.select %= 9;
+        else if(this.dimension == Dimension.THREE)
+            this.select %= 27;
     }
 
     check_winners() {
