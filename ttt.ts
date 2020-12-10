@@ -38,9 +38,11 @@ export class Board {
     reset(dimension: Dimension = this.dimension ?? Dimension.FOUR) {
         this.dimension = dimension;
         this.pieces = [];
-        this.cur_piece = Piece.X;
         this.select = 0;
         this.winners = [];
+
+        if(this.cur_piece == null)
+            this.cur_piece = Piece.X;
     }
 
     swap_piece() {
