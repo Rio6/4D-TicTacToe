@@ -83,8 +83,8 @@ export function update_config() {
 
 export function toggle_menu() {
     for(let elem of Array.from(document.querySelectorAll('.overlay')) as HTMLElement[]) {
-        if(elem.style.top != '-100%') {
-            elem.style.top = '-100%';
+        if(!elem.style.top || elem.style.top.startsWith('0')) {
+            elem.style.top = `${-elem.offsetHeight * 1.2}px`;
         } else {
             elem.style.top = '0px';
         }
