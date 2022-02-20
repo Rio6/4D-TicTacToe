@@ -134,7 +134,7 @@ export function init(can: HTMLCanvasElement) {
 
     gl.useProgram(program);
 
-    gl.lineWidth(20);
+    gl.lineWidth(2);
     gl.clearColor(0, 0, 0, 1);
     gl.enable(gl.DEPTH_TEST);
 
